@@ -1,0 +1,18 @@
+{
+  "Index": {
+    "seat": "Seat",
+    "row": "Row",
+    "sector": "Sector",
+    "table": "Table",
+    "floor": "Floor",
+    "vip": "VIP",
+    "seat_cnt": "Number of seats",
+    "toHome": "Go to Home",
+    "back": "Back",
+    "pageNotFound": "We can't find the page you're looking for. Check the URL and try again.",
+    "step": "Step",
+    "deleteAccount": "Delete Account",
+    "deleteWarning": "Please note that you must not have any active tickets or balance in your wallet to delete your account !",
+    "deleteWarning2": "Please note that deleted accounts cannot be recovered !!!"
+  }
+}
