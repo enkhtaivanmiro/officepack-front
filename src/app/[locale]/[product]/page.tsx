@@ -5,7 +5,29 @@ import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import Card from "../../components/Card";
 
-const allProducts = [
+type Product = {
+  id: string;
+  name: string;
+  originalPrice: number;
+  discountPrice: number;
+  discountPercent: number;
+  description: string;
+  colors: string[];
+  sizes: string[];
+  images: string[];
+};
+
+type CartItem = {
+  id: string;
+  name: string;
+  color: string;
+  size: string;
+  price: number;
+  quantity: number;
+  image: string;
+};
+
+const allProducts: Product[] = [
   {
     id: "tshirt-with-tape-details",
     name: "T-shirt with Tape Details",
@@ -26,7 +48,6 @@ export default function Page({
   params: { locale: string; product: string };
 }) {
   const { product } = params;
-
   const productData = allProducts.find((p) => p.id === product);
 
   if (!productData) {
@@ -41,10 +62,12 @@ export default function Page({
     );
   }
 
-  const [selectedColor, setSelectedColor] = useState(productData.colors[0]);
-  const [selectedSize, setSelectedSize] = useState("Large");
-  const [quantity, setQuantity] = useState(1);
-  const [mainImageIndex, setMainImageIndex] = useState(0);
+  const [selectedColor, setSelectedColor] = useState<string>(
+    productData.colors[0]
+  );
+  const [selectedSize, setSelectedSize] = useState<string>("Large");
+  const [quantity, setQuantity] = useState<number>(1);
+  const [mainImageIndex, setMainImageIndex] = useState<number>(0);
 
   const relatedProducts = [
     {
@@ -65,10 +88,43 @@ export default function Page({
     { image: "/icons/tshirt.png", name: "Black Striped T-shirt", price: 120 },
   ];
 
+  const handleAddToCart = () => {
+    const existingCart: CartItem[] = JSON.parse(
+      localStorage.getItem("cart") || "[]"
+    );
+
+    const newItem: CartItem = {
+      id: productData.id,
+      name: productData.name,
+      color: selectedColor,
+      size: selectedSize,
+      price: productData.discountPrice,
+      quantity,
+      image: productData.images[0],
+    };
+
+    const existingIndex = existingCart.findIndex(
+      (item) =>
+        item.id === newItem.id &&
+        item.color === newItem.color &&
+        item.size === newItem.size
+    );
+
+    if (existingIndex > -1) {
+      existingCart[existingIndex].quantity += quantity;
+    } else {
+      existingCart.push(newItem);
+    }
+
+    localStorage.setItem("cart", JSON.stringify(existingCart));
+    alert("Item added to cart!");
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="max-w-7xl mx-auto p-6 flex flex-col md:flex-row gap-10">
+        {/* Left: Product Images */}
         <div className="flex flex-col md:w-1/2">
           <div className="p-6 bg-gray-100 rounded-lg mb-6">
             <img
@@ -96,6 +152,7 @@ export default function Page({
           </div>
         </div>
 
+        {/* Right: Product Info */}
         <div className="md:w-1/2 flex flex-col">
           <h1 className="text-3xl font-bold mb-2 text-black">
             {productData.name}
@@ -115,6 +172,7 @@ export default function Page({
             {productData.description}
           </p>
 
+          {/* Color Selector */}
           <div className="mb-6">
             <p className="font-extralight mb-2 text-gray-600">Select Colors</p>
             <div className="flex gap-4">
@@ -136,6 +194,7 @@ export default function Page({
             </div>
           </div>
 
+          {/* Size Selector */}
           <div className="mb-6">
             <p className="font-extralight mb-2 text-gray-600">Choose Size</p>
             <div className="flex gap-4">
@@ -155,27 +214,35 @@ export default function Page({
             </div>
           </div>
 
-          <div className="flex items-center gap-4 mb-10">
+          {/* Quantity + Add to Cart */}
+          <div className="flex items-center mb-10">
             <button
               onClick={() => setQuantity((qty) => Math.max(1, qty - 1))}
-              className="w-10 h-10 rounded-full flex justify-center items-center text-2xl bg-gray-200 text-black"
+              className="w-10 h-10 rounded-l-full flex justify-center items-center text-2xl bg-gray-200 text-black"
             >
               −
             </button>
-            <span className="text-xl text-black">{quantity}</span>
+            <div className="w-10 h-10 flex items-center justify-center bg-gray-200">
+              <span className="text-xl text-black">{quantity}</span>
+            </div>
+
             <button
               onClick={() => setQuantity((qty) => qty + 1)}
-              className="w-10 h-10 rounded-full flex justify-center items-center text-2xl bg-gray-200 text-black"
+              className="w-10 h-10 rounded-r-full flex justify-center items-center text-2xl bg-gray-200 text-black"
             >
               +
             </button>
-            <button className="ml-auto bg-black text-white px-6 py-3 rounded-full">
+            <button
+              className="ml-auto bg-black text-white px-6 py-3 rounded-full"
+              onClick={handleAddToCart}
+            >
               Add to Cart
             </button>
           </div>
         </div>
       </main>
 
+      {/* Related Products */}
       <section className="max-w-7xl mx-auto px-6 pb-12">
         <h2 className="text-xl font-bold mb-8 text-center text-black">
           YOU MIGHT ALSO LIKE

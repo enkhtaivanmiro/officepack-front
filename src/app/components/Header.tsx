@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ShoppingCart, User } from "lucide-react";
 
 export default function Header() {
@@ -30,7 +31,10 @@ export default function Header() {
             <option>English</option>
             <option>Монгол</option>
           </select>
-          <ShoppingCart className="w-5 h-5 cursor-pointer" />
+
+          <Link href="/cart">
+            <ShoppingCart className="w-5 h-5 cursor-pointer" />
+          </Link>
         </div>
       </div>
     </header>
