@@ -1,12 +1,14 @@
 import Link from "next/link";
-import { ShoppingCart, User } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 
 export default function Header() {
   return (
     <header className="w-full bg-white shadow-sm">
       <div className="max-w-7xl mx-auto flex items-center justify-between py-4 px-6">
         <div className="flex items-center space-x-8">
-          <img src="/icons/logo.png" alt="Team Huns" className="h-8 w-auto" />
+          <Link href="/">
+            <img src="/icons/logo.png" alt="Team Huns" className="h-8 w-auto" />
+          </Link>
           <nav className="hidden md:flex space-x-6 text-sm text-black font-bold">
             <a href="#" className="hover:text-gray-600">
               SHOP

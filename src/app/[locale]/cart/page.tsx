@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import { Trash2 } from "lucide-react";
+import Link from "next/link";
 
 type CartItem = {
   id: string;
@@ -144,12 +145,10 @@ export default function CartPage() {
             <span>Delivery Fee</span>
             <span className="font-bold text-black">${deliveryFee}</span>
           </div>
-
           <div className="flex justify-between font-bold text-lg border-t pt-4 mb-6 text-black">
             <span>Total</span>
             <span className="text-black">${total}</span>
           </div>
-
           <div className="flex mb-4">
             <input
               type="text"
@@ -160,10 +159,14 @@ export default function CartPage() {
               Apply
             </button>
           </div>
-
-          <button className="w-full bg-black text-white text-base py-3 rounded-full hover:bg-gray-800 flex items-center justify-center gap-2">
-            Go to Checkout →
-          </button>
+          <Link href="/checkout" passHref>
+            <button
+              type="button"
+              className="w-full bg-black text-white text-base py-3 rounded-full hover:bg-gray-800 flex items-center justify-center gap-3"
+            >
+              Go to Checkout →
+            </button>
+          </Link>
         </div>
       </main>
 
