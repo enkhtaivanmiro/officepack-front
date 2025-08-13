@@ -1,4 +1,5 @@
 interface ProductCardProps {
+  id: string;
   image: string;
   name: string;
   price: number;
@@ -18,10 +19,10 @@ export default function ProductCard({
       <img src={image} alt={name} className="mx-auto" />
       <h3 className="font-bold text-xl text-black">{name}</h3>
       <div className="flex items-center justify-center space-x-2">
-        <span className="font-bold text-black text-2xl">${price}</span>
+        <span className="font-bold text-black text-2xl">₮{price}</span>
         {oldPrice && (
-          <span className="line-throug text-2xl text-gray-400 font-bold">
-            ${oldPrice}
+          <span className="line-through text-2xl text-gray-400 font-bold">
+            ₮{oldPrice}
           </span>
         )}
         {discount && (

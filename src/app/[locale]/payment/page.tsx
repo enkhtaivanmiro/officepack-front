@@ -25,7 +25,6 @@ export default function PaymentPage() {
 
       <main className="flex flex-col items-center justify-center flex-grow px-4">
         <div className="relative bg-gradient-to-b from-gray-200 to-gray-300 rounded-xl shadow-lg p-8 w-[320px] flex flex-col items-center text-center">
-          {/* Close button */}
           <button className="absolute top-3 right-3">
             <X size={20} />
           </button>

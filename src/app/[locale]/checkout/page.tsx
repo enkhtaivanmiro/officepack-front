@@ -189,11 +189,11 @@ export default function Checkout() {
               <div className="mt-4 border-t border-gray-200 pt-4 text-xl font-normal">
                 <div className="flex justify-between py-1">
                   <span>Subtotal</span>
-                  <span className="text-lg">${subtotal}</span>
+                  <span className="text-lg">₮{subtotal}</span>
                 </div>
                 <div className="flex justify-between py-1">
                   <span>Shipping</span>
-                  <span className="text-lg">${shipping}</span>
+                  <span className="text-lg">₮{shipping}</span>
                 </div>
                 <div className="flex justify-between py-1 font-semibold text-2xl">
                   <span>Total</span>

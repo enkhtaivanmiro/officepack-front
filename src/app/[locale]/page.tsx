@@ -1,42 +1,62 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Card from "../components/Card";
 
-export default function Page({ params }: { params: { locale: string } }) {
-  const { locale } = params;
+type Product = {
+  id: string;
+  title: string;
+  slug: string;
+  price?: number | null;
+  selling_price?: number | null;
+};
 
-  const products = [
-    {
-      id: "tshirt-with-tape-details",
-      image: "/icons/tshirt.png",
-      name: "T-shirt with Tape Details",
-      price: 120,
-    },
-    {
-      id: "skinny-fit-jeans",
-      image: "/icons/tshirt.png",
-      name: "Skinny Fit Jeans",
-      price: 240,
-      oldPrice: 260,
-      discount: 20,
-    },
-    {
-      id: "checkered-shirt",
-      image: "/icons/tshirt.png",
-      name: "Checkered Shirt",
-      price: 180,
-    },
-    {
-      id: "sleeve-striped-tshirt",
-      image: "/icons/tshirt.png",
-      name: "Sleeve Striped T-shirt",
-      price: 130,
-      oldPrice: 160,
-      discount: 30,
-    },
-  ];
+type Image = {
+  id: string;
+  url: string;
+  product_id: string;
+};
+
+export default function Page() {
+  const pathname = usePathname();
+  const locale = pathname?.split("/")[1] ?? "en";
+
+  const [products, setProducts] = useState<Product[]>([]);
+  const [images, setImages] = useState<Image[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [prodRes, imgRes] = await Promise.all([
+          fetch("http://localhost:3000/product"),
+          fetch("http://localhost:3000/images"),
+        ]);
+
+        if (!prodRes.ok) throw new Error("Failed to fetch products");
+        if (!imgRes.ok) throw new Error("Failed to fetch images");
+
+        const productsData: Product[] = await prodRes.json();
+        const imagesData: Image[] = await imgRes.json();
+
+        setProducts(productsData);
+        setImages(imagesData);
+      } catch (err: any) {
+        setError(err.message || "Unknown error");
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  if (loading) return <p className="text-center mt-10">Loading products...</p>;
+  if (error) return <p className="text-center mt-10 text-red-600">{error}</p>;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -59,11 +79,28 @@ export default function Page({ params }: { params: { locale: string } }) {
         CHEER FOR THE HUNS IN OUR OFFICIAL JERSEY
       </h1>
       <main className="flex-grow max-w-7xl mx-auto px-6 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
-        {products.map((p) => (
-          <Link href={`/${locale}/${p.id}`} key={p.id} className="block">
-            <Card {...p} />
-          </Link>
-        ))}
+        {products.map((p) => {
+          const productImage = images.find((img) => img.product_id === p.id);
+          const price = p.price ?? 0;
+          const sellingPrice = p.selling_price ?? price;
+          const discount =
+            price && sellingPrice && price > sellingPrice
+              ? Math.round(((price - sellingPrice) / price) * 100)
+              : undefined;
+
+          return (
+            <Link href={`/${locale}/${p.id}`} key={p.id} className="block">
+              <Card
+                id={p.id}
+                name={p.title}
+                image={productImage?.url ?? "/icons/tshirt.png"}
+                price={sellingPrice}
+                oldPrice={discount ? price : undefined}
+                discount={discount}
+              />
+            </Link>
+          );
+        })}
       </main>
       <Footer />
     </div>

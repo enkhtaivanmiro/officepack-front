@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import Card from "../../components/Card";
@@ -8,213 +8,242 @@ import Card from "../../components/Card";
 type Product = {
   id: string;
   name: string;
-  originalPrice: number;
-  discountPrice: number;
-  discountPercent: number;
   description: string;
-  colors: string[];
-  sizes: string[];
-  images: string[];
+  price?: number | null;
+  selling_price?: number | null;
 };
 
-type CartItem = {
+type Image = {
+  id: string;
+  url: string;
+  product_id: string;
+};
+
+type Attribute = {
   id: string;
   name: string;
-  color: string;
-  size: string;
-  price: number;
-  quantity: number;
-  image: string;
 };
 
-const allProducts: Product[] = [
-  {
-    id: "tshirt-with-tape-details",
-    name: "T-shirt with Tape Details",
-    originalPrice: 300,
-    discountPrice: 260,
-    discountPercent: 40,
-    description:
-      "This graphic t-shirt is perfect for any occasion. Crafted from a soft and breathable fabric, it offers superior comfort and style.",
-    colors: ["#696042", "#2F4F4F", "#2C2F4F"],
-    sizes: ["Small", "Medium", "Large", "X-Large"],
-    images: ["/icons/tshirt.png", "/icons/tshirt.png", "/icons/tshirt.png"],
-  },
-];
+type AttributeValue = {
+  id: string;
+  attribute_id: string;
+  name: string;
+  presentation: string;
+};
 
 export default function Page({
   params,
 }: {
   params: { locale: string; product: string };
 }) {
-  const { product } = params;
-  const productData = allProducts.find((p) => p.id === product);
+  const productId = params.product;
 
-  if (!productData) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <main className="max-w-7xl mx-auto p-6">
-          <h1 className="text-2xl font-bold">Product not found</h1>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
+  const [product, setProduct] = useState<Product | null>(null);
+  const [images, setImages] = useState<Image[]>([]);
+  const [attributes, setAttributes] = useState<Attribute[]>([]);
+  const [attributeValues, setAttributeValues] = useState<AttributeValue[]>([]);
 
-  const [selectedColor, setSelectedColor] = useState<string>(
-    productData.colors[0]
-  );
-  const [selectedSize, setSelectedSize] = useState<string>("Large");
-  const [quantity, setQuantity] = useState<number>(1);
-  const [mainImageIndex, setMainImageIndex] = useState<number>(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const relatedProducts = [
-    {
-      image: "/icons/tshirt.png",
-      name: "Polo with Contrast Trims",
-      price: 120,
-    },
-    {
-      image: "/icons/tshirt.png",
-      name: "Gradient Graphic T-shirt",
-      price: 120,
-    },
-    {
-      image: "/icons/tshirt.png",
-      name: "Polo with Tipping Details",
-      price: 120,
-    },
-    { image: "/icons/tshirt.png", name: "Black Striped T-shirt", price: 120 },
-  ];
+  const [mainImageIndex, setMainImageIndex] = useState(0);
+  const [quantity, setQuantity] = useState(1);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
 
-  const handleAddToCart = () => {
-    const existingCart: CartItem[] = JSON.parse(
-      localStorage.getItem("cart") || "[]"
-    );
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true);
 
-    const newItem: CartItem = {
-      id: productData.id,
-      name: productData.name,
-      color: selectedColor,
-      size: selectedSize,
-      price: productData.discountPrice,
-      quantity,
-      image: productData.images[0],
-    };
+        const resProducts = await fetch("http://localhost:3000/product");
+        if (!resProducts.ok) throw new Error("Failed to fetch products");
+        const products: Product[] = await resProducts.json();
 
-    const existingIndex = existingCart.findIndex(
-      (item) =>
-        item.id === newItem.id &&
-        item.color === newItem.color &&
-        item.size === newItem.size
-    );
+        const foundProduct = products.find((p) => p.id === productId);
+        if (!foundProduct) {
+          setError("Product not found");
+          setLoading(false);
+          return;
+        }
+        setProduct(foundProduct);
 
-    if (existingIndex > -1) {
-      existingCart[existingIndex].quantity += quantity;
-    } else {
-      existingCart.push(newItem);
+        const resImages = await fetch("http://localhost:3000/images");
+        if (!resImages.ok) throw new Error("Failed to fetch images");
+        const allImages: Image[] = await resImages.json();
+        setImages(allImages.filter((img) => img.product_id === productId));
+
+        const resAttributes = await fetch("http://localhost:3000/attribute");
+        if (!resAttributes.ok) throw new Error("Failed to fetch attributes");
+        const attrs: Attribute[] = await resAttributes.json();
+        setAttributes(attrs);
+
+        const resAttrValues = await fetch(
+          "http://localhost:3000/attribute_value"
+        );
+        if (!resAttrValues.ok)
+          throw new Error("Failed to fetch attribute values");
+        const attrVals: AttributeValue[] = await resAttrValues.json();
+        setAttributeValues(attrVals);
+
+        const colorAttr = attrs.find((a) => a.name.toLowerCase() === "color");
+        const sizeAttr = attrs.find((a) => a.name.toLowerCase() === "size");
+
+        if (colorAttr) {
+          const colorValues = attrVals.filter(
+            (v) => v.attribute_id === colorAttr.id
+          );
+          if (colorValues.length > 0)
+            setSelectedColor(colorValues[0].presentation);
+        }
+
+        if (sizeAttr) {
+          const sizeValues = attrVals.filter(
+            (v) => v.attribute_id === sizeAttr.id
+          );
+          if (sizeValues.length > 0)
+            setSelectedSize(sizeValues[0].presentation);
+        }
+      } catch (err: any) {
+        setError(err.message || "Unknown error");
+      } finally {
+        setLoading(false);
+      }
     }
 
-    localStorage.setItem("cart", JSON.stringify(existingCart));
-    alert("Item added to cart!");
-  };
+    fetchData();
+  }, [productId]);
+
+  if (loading) return <p className="text-center mt-10">Loading product...</p>;
+  if (error) return <p className="text-center mt-10 text-red-600">{error}</p>;
+  if (!product) return null;
+
+  const price = product.selling_price ?? product.price ?? 0;
+  const originalPrice = product.price ?? price;
+  const discountPercent =
+    product.price && product.selling_price
+      ? Math.round(
+          ((product.price - product.selling_price) / product.price) * 100
+        )
+      : 0;
 
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="max-w-7xl mx-auto p-6 flex flex-col md:flex-row gap-10">
-        {/* Left: Product Images */}
-        <div className="flex flex-col md:w-1/2">
-          <div className="p-6 bg-gray-100 rounded-lg mb-6">
-            <img
-              src={productData.images[mainImageIndex]}
-              alt="Product"
-              className="w-full h-auto object-contain"
-            />
-          </div>
-          <div className="flex gap-4">
-            {productData.images.map((img, idx) => (
+        <div className="flex md:flex-row gap-4 md:gap-6">
+          <div className="flex flex-row md:flex-col gap-2 md:gap-4">
+            {images.map((img, idx) => (
               <button
-                key={idx}
+                key={img.id}
                 onClick={() => setMainImageIndex(idx)}
-                className={`border rounded p-2 ${
+                className={`border rounded w-48 h-48 md:w-20 md:h-20 overflow-hidden ${
                   idx === mainImageIndex ? "border-black" : "border-gray-300"
                 }`}
               >
                 <img
-                  src={img}
+                  src={img.url}
                   alt={`Thumbnail ${idx + 1}`}
-                  className="w-20 h-20 object-contain"
+                  className="w-full h-full object-cover"
                 />
               </button>
             ))}
           </div>
+
+          <div className="flex-1 p-6 rounded-lg flex items-center justify-center">
+            {images.length > 0 ? (
+              <img
+                src={images[mainImageIndex].url}
+                alt={product.name}
+                className="w-128 h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-96 flex items-center justify-center text-gray-600">
+                No images available
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Right: Product Info */}
         <div className="md:w-1/2 flex flex-col">
-          <h1 className="text-3xl font-bold mb-2 text-black">
-            {productData.name}
-          </h1>
+          <h1 className="text-3xl font-bold mb-2 text-black">{product.name}</h1>
           <div className="flex items-center gap-3 mb-3">
-            <span className="text-2xl font-semibold text-black">
-              ${productData.discountPrice}
-            </span>
-            <span className="text-gray-400 line-through">
-              ${productData.originalPrice}
-            </span>
-            <span className="bg-red-100 text-red-500 px-2 rounded-full text-sm font-medium">
-              -{productData.discountPercent}%
-            </span>
+            <span className="text-2xl font-semibold text-black">₮{price}</span>
+            {discountPercent > 0 && (
+              <>
+                <span className="text-gray-400 line-through">
+                  ₮{originalPrice}
+                </span>
+                <span className="bg-red-100 text-red-500 px-2 rounded-full text-sm font-medium">
+                  -{discountPercent}%
+                </span>
+              </>
+            )}
           </div>
           <p className="text-gray-600 mb-6 font-extralight">
-            {productData.description}
+            {product.description}
           </p>
 
-          {/* Color Selector */}
-          <div className="mb-6">
-            <p className="font-extralight mb-2 text-gray-600">Select Colors</p>
-            <div className="flex gap-4">
-              {productData.colors.map((color) => (
-                <button
-                  key={color}
-                  onClick={() => setSelectedColor(color)}
-                  style={{ backgroundColor: color }}
-                  className={`w-8 h-8 rounded-full border-2 flex items-center justify-center ${
-                    selectedColor === color ? "" : "border-transparent"
-                  }`}
-                  aria-label={`Select color ${color}`}
-                >
-                  {selectedColor === color && (
-                    <span className="text-white text-sm font-bold">✓</span>
-                  )}
-                </button>
-              ))}
+          {attributes.find((a) => a.name.toLowerCase() === "color") && (
+            <div className="mb-6">
+              <p className="font-extralight mb-2 text-gray-600">Select Color</p>
+              <div className="flex gap-4">
+                {attributeValues
+                  .filter(
+                    (v) =>
+                      v.attribute_id ===
+                      attributes.find((a) => a.name.toLowerCase() === "color")
+                        ?.id
+                  )
+                  .map((val) => (
+                    <button
+                      key={val.id}
+                      onClick={() => setSelectedColor(val.presentation)}
+                      style={{ backgroundColor: val.name }}
+                      className={`w-8 h-8 rounded-full border-2 flex items-center justify-center ${
+                        selectedColor === val.presentation
+                          ? "border-black"
+                          : "border-transparent"
+                      }`}
+                      aria-label={`Select color ${val.presentation}`}
+                    >
+                      {selectedColor === val.presentation && (
+                        <span className="text-white text-sm font-bold">✓</span>
+                      )}
+                    </button>
+                  ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Size Selector */}
-          <div className="mb-6">
-            <p className="font-extralight mb-2 text-gray-600">Choose Size</p>
-            <div className="flex gap-4">
-              {productData.sizes.map((size) => (
-                <button
-                  key={size}
-                  onClick={() => setSelectedSize(size)}
-                  className={`px-4 py-2 rounded-full ${
-                    selectedSize === size
-                      ? "bg-black text-white"
-                      : "bg-gray-200 text-gray-600"
-                  }`}
-                >
-                  {size}
-                </button>
-              ))}
+          {attributes.find((a) => a.name.toLowerCase() === "size") && (
+            <div className="mb-6">
+              <p className="font-extralight mb-2 text-gray-600">Choose Size</p>
+              <div className="flex gap-4">
+                {attributeValues
+                  .filter(
+                    (v) =>
+                      v.attribute_id ===
+                      attributes.find((a) => a.name.toLowerCase() === "size")
+                        ?.id
+                  )
+                  .map((val) => (
+                    <button
+                      key={val.id}
+                      onClick={() => setSelectedSize(val.presentation)}
+                      className={`px-4 py-2 rounded-full ${
+                        selectedSize === val.presentation
+                          ? "bg-black text-white"
+                          : "bg-gray-200 text-gray-600"
+                      }`}
+                    >
+                      {val.presentation}
+                    </button>
+                  ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Quantity + Add to Cart */}
           <div className="flex items-center mb-10">
             <button
               onClick={() => setQuantity((qty) => Math.max(1, qty - 1))}
@@ -225,7 +254,6 @@ export default function Page({
             <div className="w-10 h-10 flex items-center justify-center bg-gray-200">
               <span className="text-xl text-black">{quantity}</span>
             </div>
-
             <button
               onClick={() => setQuantity((qty) => qty + 1)}
               className="w-10 h-10 rounded-r-full flex justify-center items-center text-2xl bg-gray-200 text-black"
@@ -234,26 +262,65 @@ export default function Page({
             </button>
             <button
               className="ml-auto bg-black text-white px-6 py-3 rounded-full"
-              onClick={handleAddToCart}
+              onClick={() => {
+                const existingCart = JSON.parse(
+                  localStorage.getItem("cart") || "[]"
+                );
+
+                const newItem = {
+                  id: product.id,
+                  name: product.name,
+                  color: selectedColor,
+                  size: selectedSize,
+                  price,
+                  quantity,
+                  image: images[mainImageIndex]?.url || "",
+                };
+
+                const existingIndex = existingCart.findIndex(
+                  (item: any) =>
+                    item.id === newItem.id &&
+                    item.color === newItem.color &&
+                    item.size === newItem.size
+                );
+
+                if (existingIndex > -1) {
+                  existingCart[existingIndex].quantity += quantity;
+                } else {
+                  existingCart.push(newItem);
+                }
+
+                localStorage.setItem("cart", JSON.stringify(existingCart));
+                alert("Item added to cart!");
+              }}
             >
               Add to Cart
             </button>
           </div>
         </div>
       </main>
-
-      {/* Related Products */}
       <section className="max-w-7xl mx-auto px-6 pb-12">
         <h2 className="text-xl font-bold mb-8 text-center text-black">
           YOU MIGHT ALSO LIKE
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          {relatedProducts.map((p, i) => (
-            <Card key={i} {...p} />
-          ))}
+          {images.length > 0 ? (
+            images.map((img) => (
+              <Card
+                key={img.id}
+                id={product.id}
+                name={product.name}
+                image={img.url}
+                price={product.selling_price ?? product.price ?? 0}
+              />
+            ))
+          ) : (
+            <p className="text-center text-gray-500 col-span-full">
+              No related products available
+            </p>
+          )}
         </div>
       </section>
-
       <Footer />
     </div>
   );

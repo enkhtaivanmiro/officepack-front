@@ -72,7 +72,6 @@ export default function CartPage() {
                 key={`${item.id}-${item.color}-${item.size}-${index}`}
                 className="flex items-center justify-between bg-white rounded-2xl shadow border border-gray-100 px-4 py-4"
               >
-                {/* Product Image */}
                 <div className="flex items-center gap-4">
                   <img
                     src={item.image}
@@ -88,7 +87,7 @@ export default function CartPage() {
                     </p>
                     <p className="text-sm text-gray-500">Color: {item.color}</p>
                     <p className="font-bold text-black mt-2 text-2xl">
-                      ${item.price}
+                      ₮{item.price}
                     </p>
                   </div>
                 </div>
@@ -135,19 +134,19 @@ export default function CartPage() {
           <h2 className="text-xl font-bold mb-6 text-black">Order Summary</h2>
           <div className="flex justify-between text-gray-700 mb-2">
             <span>Subtotal</span>
-            <span className="font-bold text-black">${subtotal}</span>
+            <span className="font-bold text-black">₮{subtotal}</span>
           </div>
           <div className="flex justify-between text-gray-700 mb-2">
             <span>Discount (-20%)</span>
-            <span className="text-red-500 font-bold">-${discount}</span>
+            <span className="text-red-500 font-bold">-₮{discount}</span>
           </div>
           <div className="flex justify-between text-gray-700 mb-4">
             <span>Delivery Fee</span>
-            <span className="font-bold text-black">${deliveryFee}</span>
+            <span className="font-bold text-black">₮{deliveryFee}</span>
           </div>
           <div className="flex justify-between font-bold text-lg border-t pt-4 mb-6 text-black">
             <span>Total</span>
-            <span className="text-black">${total}</span>
+            <span className="text-black">₮{total}</span>
           </div>
           <div className="flex mb-4">
             <input
