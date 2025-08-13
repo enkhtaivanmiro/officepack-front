@@ -30,8 +30,8 @@ export default function Header() {
 
         <div className="flex items-center space-x-6 text-black font-bold">
           <select className="text-sm border-none bg-transparent focus:ring-0">
-            <option>English</option>
-            <option>Монгол</option>
+            <option>ENGLISH</option>
+            <option>МОНГОЛ</option>
           </select>
 
           <Link href="/cart">

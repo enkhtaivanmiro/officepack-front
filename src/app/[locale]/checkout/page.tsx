@@ -1,8 +1,39 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import Image from "next/image";
+import Link from "next/link";
+
+type CartItem = {
+  id: string;
+  name: string;
+  color: string;
+  size: string;
+  price: number;
+  quantity: number;
+  image: string;
+};
 
 export default function Checkout() {
+  const [cart, setCart] = useState<CartItem[]>([]);
+
+  useEffect(() => {
+    const storedCart = localStorage.getItem("cart");
+    if (storedCart) {
+      setCart(JSON.parse(storedCart));
+    }
+  }, []);
+
+  const subtotal = cart.reduce(
+    (total, item) => total + item.price * item.quantity,
+    0
+  );
+
+  const shipping = 100;
+  const total = subtotal + shipping;
+
   return (
     <div className="min-h-screen flex flex-col text-black">
       <Header />
@@ -129,66 +160,64 @@ export default function Checkout() {
         </div>
 
         <div className="w-full md:w-[320px] border border-gray-200 rounded-lg bg-white p-4">
-          <div className="flex items-center gap-3 border-b border-gray-100 py-3">
-            <Image
-              src="/dummy-product.png"
-              alt="Item 1"
-              width={48}
-              height={48}
-              className="object-contain rounded"
-            />
-            <div className="flex-1 text-sm">
-              <p>Item name</p>
-              <p className="text-gray-500">x1</p>
-            </div>
-            <p className="font-medium">$250</p>
-          </div>
+          {cart.length === 0 ? (
+            <p className="text-gray-500 text-sm">Your cart is empty.</p>
+          ) : (
+            <>
+              {cart.map((item, index) => (
+                <div
+                  key={`${item.id}-${index}`}
+                  className="flex items-center gap-3 border-b border-gray-100 py-3 bg-gray-100 rounded-md mb-2 p-2"
+                >
+                  <Image
+                    src={item.image}
+                    alt={item.name}
+                    width={48}
+                    height={48}
+                    className="object-contain rounded"
+                  />
+                  <div className="flex-1 text-sm">
+                    <p>{item.name}</p>
+                    <p className="text-gray-500">
+                      {item.quantity} × ${item.price}
+                    </p>
+                  </div>
+                  <p className="font-medium">${item.price * item.quantity}</p>
+                </div>
+              ))}
 
-          <div className="flex items-center gap-3 border-b border-gray-100 py-3">
-            <Image
-              src="/dummy-product.png"
-              alt="Item 2"
-              width={48}
-              height={48}
-              className="object-contain rounded"
-            />
-            <div className="flex-1 text-sm">
-              <p>Item name</p>
-              <p className="text-gray-500">x1</p>
-            </div>
-            <p className="font-medium">$250</p>
-          </div>
+              <div className="mt-4 border-t border-gray-200 pt-4 text-xl font-normal">
+                <div className="flex justify-between py-1">
+                  <span>Subtotal</span>
+                  <span className="text-lg">${subtotal}</span>
+                </div>
+                <div className="flex justify-between py-1">
+                  <span>Shipping</span>
+                  <span className="text-lg">${shipping}</span>
+                </div>
+                <div className="flex justify-between py-1 font-semibold text-2xl">
+                  <span>Total</span>
+                  <span className="text-green-600">${total}</span>
+                </div>
+              </div>
 
-          <div className="mt-4 border-t border-gray-200 pt-4 text-sm">
-            <div className="flex justify-between py-1">
-              <span>Subtotal</span>
-              <span>$500</span>
-            </div>
-            <div className="flex justify-between py-1">
-              <span>Shipping</span>
-              <span>$100</span>
-            </div>
-            <div className="flex justify-between py-1 font-semibold text-base">
-              <span>Total</span>
-              <span className="text-green-600">$600</span>
-            </div>
-          </div>
+              <div className="flex gap-3 mt-4">
+                <button className="flex-1 bg-gray-100 rounded-md py-2 text-sm font-medium">
+                  Back
+                </button>
+                <button className="flex-1 bg-gray-300 rounded-md py-2 text-sm font-medium">
+                  Pay
+                </button>
+              </div>
 
-          <div className="flex gap-3 mt-4">
-            <button className="flex-1 bg-gray-100 rounded-md py-2 text-sm font-medium">
-              Back
-            </button>
-            <button className="flex-1 bg-gray-300 rounded-md py-2 text-sm font-medium">
-              Pay
-            </button>
-          </div>
-
-          <ul className="mt-4 text-xs text-gray-500 list-disc list-inside">
-            <li>Please note that the item cannot be returned</li>
-            <li>
-              You may resell your purchased ticket on the SECONDARY MARKET
-            </li>
-          </ul>
+              <ul className="mt-4 text-xs text-gray-500 list-disc list-inside">
+                <li>Please note that the item cannot be returned</li>
+                <li>
+                  You may resell your purchased ticket on the SECONDARY MARKET
+                </li>
+              </ul>
+            </>
+          )}
         </div>
       </main>
 
