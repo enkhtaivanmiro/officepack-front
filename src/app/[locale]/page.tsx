@@ -75,7 +75,7 @@ export default function Page() {
         </div>
       </div>
 
-      <h1 className="font-bold text-black text-center mt-32 text-3xl mb-20">
+      <h1 className="font-bold text-black text-center mt-25 text-3xl mb-25">
         CHEER FOR THE HUNS IN OUR OFFICIAL JERSEY
       </h1>
       <main className="flex-grow max-w-7xl mx-auto px-6 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">

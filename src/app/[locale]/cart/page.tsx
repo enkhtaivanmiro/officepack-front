@@ -4,27 +4,31 @@ import React, { useState, useEffect } from "react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import { Trash2 } from "lucide-react";
-import Link from "next/link";
-
-type CartItem = {
-  id: string;
-  name: string;
-  color: string;
-  size: string;
-  price: number;
-  quantity: number;
-  image: string;
-};
+import { FaTag } from "react-icons/fa";
+import { useRouter } from "next/navigation";
+import { useAtom } from "jotai";
+import { cartAtom, CartItem as AtomCartItem } from "../../../atoms/cartAtom";
 
 export default function CartPage() {
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cart, setCart] = useAtom<CartItem[]>(cartAtom); // using Jotai atom
+  const router = useRouter();
 
+  // Load from localStorage on mount
   useEffect(() => {
-    const storedCart = localStorage.getItem("cart");
-    if (storedCart) {
-      setCart(JSON.parse(storedCart) as CartItem[]);
+    if (typeof window !== "undefined") {
+      const storedCart = localStorage.getItem("cart");
+      if (storedCart) {
+        setCart(JSON.parse(storedCart));
+      }
     }
-  }, []);
+  }, [setCart]);
+
+  // Sync to localStorage whenever cart changes
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("cart", JSON.stringify(cart));
+    }
+  }, [cart]);
 
   const updateQuantity = (
     id: string,
@@ -38,7 +42,6 @@ export default function CartPage() {
         : item
     );
     setCart(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
   };
 
   const removeItem = (id: string, color: string, size: string) => {
@@ -46,23 +49,28 @@ export default function CartPage() {
       (item) => !(item.id === id && item.color === color && item.size === size)
     );
     setCart(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
   };
 
   const subtotal = cart.reduce(
     (total, item) => total + item.price * item.quantity,
     0
   );
-
   const discount = subtotal * 0.2;
   const deliveryFee = 15;
   const total = subtotal - discount + deliveryFee;
+
+  const goToCheckout = () => {
+    router.push(
+      `/checkout?subtotal=${subtotal}&discount=${discount}&delivery=${deliveryFee}&total=${total}`
+    );
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <Header />
 
-      <main className="max-w-7xl mx-auto w-full px-6 py-12 flex flex-col md:flex-row gap-8 flex-grow">
+      <main className="max-w-7xl mx-auto w-full px-6 py-12 flex flex-col md:flex-row gap-8 flex-grow font-satoshi">
+        {/* Cart Items */}
         <div className="md:w-2/3 space-y-4">
           {cart.length === 0 ? (
             <p className="text-gray-500 text-lg">Your cart is empty.</p>
@@ -114,7 +122,6 @@ export default function CartPage() {
                         {item.quantity}
                       </span>
                     </div>
-
                     <button
                       onClick={() =>
                         updateQuantity(item.id, item.color, item.size, 1)
@@ -130,6 +137,7 @@ export default function CartPage() {
           )}
         </div>
 
+        {/* Order Summary */}
         <div className="md:w-1/3 bg-white rounded-2xl shadow border p-6 h-fit border-gray-100">
           <h2 className="text-xl font-bold mb-6 text-black">Order Summary</h2>
           <div className="flex justify-between text-gray-700 mb-2">
@@ -148,24 +156,28 @@ export default function CartPage() {
             <span>Total</span>
             <span className="text-black">₮{total}</span>
           </div>
+
           <div className="flex mb-4">
-            <input
-              type="text"
-              placeholder="Add promo code"
-              className="flex-grow bg-gray-100 rounded-full px-4 py-2 focus:outline-none font-extralight text-gray-600"
-            />
+            <div className="flex items-center bg-gray-100 rounded-full px-4 py-2">
+              <FaTag className="text-gray-400 mr-2" />
+              <input
+                type="text"
+                placeholder="Add promo code"
+                className="flex-grow bg-transparent focus:outline-none font-extralight text-gray-600"
+              />
+            </div>
             <button className="bg-black rounded-full px-4 py-2 text-white h-12 w-32 text-base ml-3">
               Apply
             </button>
           </div>
-          <Link href="/checkout" passHref>
-            <button
-              type="button"
-              className="w-full bg-black text-white text-base py-3 rounded-full hover:bg-gray-800 flex items-center justify-center gap-3"
-            >
-              Go to Checkout →
-            </button>
-          </Link>
+
+          <button
+            type="button"
+            onClick={goToCheckout}
+            className="w-full bg-black text-white text-base py-3 rounded-full hover:bg-gray-800 flex items-center justify-center gap-3"
+          >
+            Go to Checkout →
+          </button>
         </div>
       </main>
 

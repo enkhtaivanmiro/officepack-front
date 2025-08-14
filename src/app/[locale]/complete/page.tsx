@@ -2,6 +2,7 @@ import React from "react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Page() {
   return (
@@ -24,7 +25,7 @@ export default function Page() {
 
           <div className="flex justify-between text-lg font-medium mb-4">
             <span>Total</span>
-            <span>$600</span>
+            <span>₮600</span>
           </div>
 
           <div className="flex justify-center mb-4">
@@ -38,10 +39,11 @@ export default function Page() {
           </div>
 
           <p className="font-semibold mb-4">Thank you for your purchase</p>
-
-          <button className="px-6 py-2 bg-gray-200 rounded-full shadow-sm hover:bg-gray-300 transition">
-            Go Home
-          </button>
+          <Link href="/en">
+            <button className="px-6 py-2 bg-gray-200 rounded-full shadow-sm hover:bg-gray-300 transition">
+              Go Home
+            </button>
+          </Link>
         </div>
       </main>
       <Footer />

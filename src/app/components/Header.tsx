@@ -6,11 +6,11 @@ export default function Header() {
     <header className="w-full bg-white shadow-sm">
       <div className="max-w-7xl mx-auto flex items-center justify-between py-4 px-6">
         <div className="flex items-center space-x-8">
-          <Link href="/">
+          <Link href="/en">
             <img src="/icons/logo.png" alt="Team Huns" className="h-8 w-auto" />
           </Link>
           <nav className="hidden md:flex space-x-6 text-sm text-black font-bold">
-            <a href="#" className="hover:text-gray-600">
+            <a href="/en" className="hover:text-gray-600">
               SHOP
             </a>
             <a href="#" className="hover:text-gray-600">

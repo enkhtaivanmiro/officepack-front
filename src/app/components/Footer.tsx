@@ -8,7 +8,7 @@ export default function Footer() {
         <div className="mt-16">
           <p className="text-end mb-3 font-bold text-xs">FOLLOW US</p>
           <div className="flex space-x-4">
-            <a href="#">
+            <a href="https://www.facebook.com/TheHunsEsports/">
               <Facebook className="w-4 h-4" />
             </a>
             <a href="#">
@@ -17,7 +17,7 @@ export default function Footer() {
             <a href="#">
               <Youtube className="w-4 h-4" />
             </a>
-            <a href="#">
+            <a href="https://www.instagram.com/thehunsesports/">
               <Instagram className="w-4 h-4" />
             </a>
           </div>
