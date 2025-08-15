@@ -1,19 +1,41 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import Image from "next/image";
 import { useAtomValue, useSetAtom } from "jotai";
 import { priceAtom } from "../../../atoms/priceAtom";
-import { cartAtom, CartItem } from "../../../atoms/cartAtom";
-import Link from "next/link";
+import { cartAtom } from "../../../atoms/cartAtom";
+import { useRouter } from "next/navigation";
 
 export default function Checkout() {
   const cart = useAtomValue(cartAtom);
+  const setCart = useSetAtom(cartAtom);
   const setPrice = useSetAtom(priceAtom);
   const { subtotal, discount, delivery, total } = useAtomValue(priceAtom);
 
+  const router = useRouter();
+  const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
+
+  // Load cart from localStorage on mount
+  useEffect(() => {
+    const storedCart = localStorage.getItem("cart");
+    if (storedCart) {
+      try {
+        setCart(JSON.parse(storedCart));
+      } catch (err) {
+        console.error("Failed to parse cart from localStorage", err);
+      }
+    }
+  }, [setCart]);
+
+  // Update localStorage whenever cart changes
+  useEffect(() => {
+    localStorage.setItem("cart", JSON.stringify(cart));
+  }, [cart]);
+
+  // Update pricing whenever cart changes
   useEffect(() => {
     const newSubtotal = cart.reduce(
       (acc, item) => acc + item.price * item.quantity,
@@ -31,80 +53,119 @@ export default function Checkout() {
     });
   }, [cart, setPrice]);
 
+  // Handle Pay button
+  const handlePay = async () => {
+    if (!selectedPayment) {
+      alert("Please select a payment method!");
+      return;
+    }
+
+    try {
+      const address = localStorage.getItem("address");
+      if (!address) {
+        alert("Please provide your address before proceeding!");
+        return;
+      }
+      const addressData = JSON.parse(address);
+
+      const items = cart.map((item) => ({
+        variant_id: item.variantId,
+        quantity: item.quantity,
+      }));
+
+      const payload = {
+        full_name: addressData.name,
+        email: addressData.email,
+        phone_number: addressData.phone,
+        address: addressData.address,
+        status: "pending",
+        items: items,
+      };
+
+      const response = await fetch("http://localhost:3000/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create order");
+      }
+
+      const result = await response.json();
+      console.log("Order created successfully:", result);
+
+      localStorage.removeItem("cart");
+      setCart([]);
+
+      router.push("/payment");
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong while creating the order.");
+    }
+  };
+
+  const paymentGroups = [
+    {
+      title: "Pay by card",
+      methods: [{ src: "/icons/creditcard.png", name: "Credit/Debit Card" }],
+    },
+    {
+      title: "Pay by E-Wallet",
+      methods: [
+        { src: "/icons/qpay.png", name: "qPay Wallet" },
+        { src: "/icons/socialpay.png", name: "SocialPay" },
+        { src: "/icons/qpos.png", name: "qPOS" },
+        { src: "/icons/digipay.png", name: "DiGi Pay" },
+      ],
+    },
+    {
+      title: "Pay by credit or in installments",
+      methods: [
+        { src: "/icons/hipay.png", name: "HiPay Хэтэвч" },
+        { src: "/icons/monpay.png", name: "Monpay" },
+        { src: "/icons/mcredit.png", name: "M Credit" },
+        { src: "/icons/pocket.png", name: "Pocket" },
+        { src: "/icons/storepay.png", name: "Storepay" },
+      ],
+    },
+  ];
+
   return (
     <div className="min-h-screen flex flex-col text-black">
       <Header />
 
       <main className="flex-1 flex flex-col md:flex-row gap-8 max-w-6xl w-full mx-auto px-4 py-8 font-satoshi">
         <div className="flex-1 flex flex-col gap-8">
-          <div>
-            <h3 className="text-base font-semibold mb-3">Pay by card</h3>
-            <div className="flex items-center gap-2 border border-gray-200 rounded-lg bg-gray-50 px-4 py-3">
-              <Image
-                src="/icons/creditcard.png"
-                alt="Credit/Debit Card"
-                width={24}
-                height={24}
-                className="object-contain"
-              />
-              <span>Credit/Debit Card</span>
+          {paymentGroups.map((group, i) => (
+            <div key={i}>
+              <h3 className="text-base font-semibold mb-3">{group.title}</h3>
+              <div className="grid grid-cols-2 gap-3">
+                {group.methods.map((method, j) => (
+                  <div
+                    key={j}
+                    onClick={() => setSelectedPayment(method.name)}
+                    className={`flex items-center gap-2 border rounded-lg px-4 py-3 cursor-pointer ${
+                      selectedPayment === method.name
+                        ? "border-green-600 bg-green-50"
+                        : "border-gray-200 bg-white"
+                    }`}
+                  >
+                    <Image
+                      src={method.src}
+                      alt={method.name}
+                      width={24}
+                      height={24}
+                      className="object-contain"
+                    />
+                    <span>{method.name}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-
-          <div>
-            <h3 className="text-base font-semibold mb-3">Pay by E-Wallet</h3>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { src: "/icons/qpay.png", name: "qPay Wallet" },
-                { src: "/icons/socialpay.png", name: "SocialPay" },
-                { src: "/icons/qpos.png", name: "qPOS" },
-                { src: "/icons/digipay.png", name: "DiGi Pay" },
-              ].map((m, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-2 border border-gray-200 rounded-lg bg-white px-4 py-3"
-                >
-                  <Image
-                    src={m.src}
-                    alt={m.name}
-                    width={24}
-                    height={24}
-                    className="object-contain"
-                  />
-                  <span>{m.name}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-base font-semibold mb-3">
-              Pay by credit or in installments
-            </h3>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { src: "/icons/hipay.png", name: "HiPay Хэтэвч" },
-                { src: "/icons/monpay.png", name: "Monpay" },
-                { src: "/icons/mcredit.png", name: "M Credit" },
-                { src: "/icons/pocket.png", name: "Pocket" },
-                { src: "/icons/storepay.png", name: "Storepay" },
-              ].map((m, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-2 border border-gray-200 rounded-lg bg-white px-4 py-3"
-                >
-                  <Image
-                    src={m.src}
-                    alt={m.name}
-                    width={24}
-                    height={24}
-                    className="object-contain"
-                  />
-                  <span>{m.name}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          ))}
         </div>
 
         <div className="w-full md:w-[481px] border border-gray-200 rounded-lg bg-white p-4">
@@ -154,10 +215,16 @@ export default function Checkout() {
               </div>
 
               <div className="flex gap-3 mt-4">
-                <button className="flex-1 bg-gray-100 rounded-md py-2 text-sm font-medium">
+                <button
+                  className="flex-1 bg-gray-100 rounded-md py-2 text-sm font-medium"
+                  onClick={() => router.back()}
+                >
                   Back
                 </button>
-                <button className="flex-1 bg-gray-300 rounded-md py-2 text-sm font-medium">
+                <button
+                  className="flex-1 bg-gray-300 rounded-md py-2 text-sm font-medium"
+                  onClick={handlePay}
+                >
                   Pay
                 </button>
               </div>

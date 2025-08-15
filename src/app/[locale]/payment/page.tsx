@@ -8,7 +8,7 @@ import { X } from "lucide-react";
 import Link from "next/link";
 
 export default function PaymentPage() {
-  const [timeLeft, setTimeLeft] = useState(7 * 60 + 30);
+  const [timeLeft, setTimeLeft] = useState(10 * 60);
 
   useEffect(() => {
     const timer = setInterval(() => {

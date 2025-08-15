@@ -8,6 +8,7 @@ export type CartItem = {
   price: number;
   quantity: number;
   image: string;
+  variantId?: string;
 };
 
 export const cartAtom = atom<CartItem[]>([]);

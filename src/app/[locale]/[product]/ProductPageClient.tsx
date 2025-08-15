@@ -33,6 +33,16 @@ type AttributeValue = {
   presentation: string;
 };
 
+type Variant = {
+  id: string;
+  product_id: string;
+  price: number;
+  selling_price: number | null;
+  stock: number;
+  is_drop: boolean;
+  is_master: boolean;
+};
+
 interface ProductPageClientProps {
   locale: string;
   productId: string;
@@ -46,6 +56,7 @@ export default function ProductPageClient({
   const [images, setImages] = useState<Image[]>([]);
   const [attributes, setAttributes] = useState<Attribute[]>([]);
   const [attributeValues, setAttributeValues] = useState<AttributeValue[]>([]);
+  const [variants, setVariants] = useState<Variant[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -85,6 +96,11 @@ export default function ProductPageClient({
           throw new Error("Failed to fetch attribute values");
         const attrVals: AttributeValue[] = await resAttrValues.json();
         setAttributeValues(attrVals);
+
+        const resVariants = await fetch("http://localhost:3000/variant");
+        if (!resVariants.ok) throw new Error("Failed to fetch variants");
+        const allVariants: Variant[] = await resVariants.json();
+        setVariants(allVariants.filter((v) => v.product_id === productId));
 
         const colorAttr = attrs.find((a) => a.name.toLowerCase() === "color");
         const sizeAttr = attrs.find((a) => a.name.toLowerCase() === "size");
@@ -128,35 +144,49 @@ export default function ProductPageClient({
       : 0;
 
   const handleAddToCart = () => {
-    if (!product) return;
+    if (!product || !selectedColor || !selectedSize) return;
+
+    const colorAttr = attributes.find((a) => a.name.toLowerCase() === "color");
+    const sizeAttr = attributes.find((a) => a.name.toLowerCase() === "size");
+
+    const colorValue = attributeValues.find(
+      (v) =>
+        v.attribute_id === colorAttr?.id && v.presentation === selectedColor
+    );
+
+    const sizeValue = attributeValues.find(
+      (v) => v.attribute_id === sizeAttr?.id && v.presentation === selectedSize
+    );
+
+    const matchedVariant = variants[0];
 
     const newItem: CartItem = {
       id: product.id,
       name: product.name,
       color: selectedColor,
       size: selectedSize,
-      price,
+      price: matchedVariant?.selling_price ?? matchedVariant?.price ?? price,
       quantity,
       image: images[mainImageIndex]?.url || "",
+      variantId: matchedVariant?.id || "",
     };
 
     setCart((prevCart) => {
       const existingIndex = prevCart.findIndex(
-        (item) =>
-          item.id === newItem.id &&
-          item.color === newItem.color &&
-          item.size === newItem.size
+        (item) => item.id === newItem.id && item.variantId === newItem.variantId
       );
 
-      if (existingIndex > -1) {
-        return prevCart.map((item, idx) =>
-          idx === existingIndex
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
-      } else {
-        return [...prevCart, newItem];
-      }
+      const updatedCart =
+        existingIndex > -1
+          ? prevCart.map((item, idx) =>
+              idx === existingIndex
+                ? { ...item, quantity: item.quantity + quantity }
+                : item
+            )
+          : [...prevCart, newItem];
+
+      localStorage.setItem("cart", JSON.stringify(updatedCart));
+      return updatedCart;
     });
 
     alert("Item added to cart!");

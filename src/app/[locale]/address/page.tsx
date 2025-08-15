@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import { FaTag } from "react-icons/fa";
 import { useRouter } from "next/navigation";
-import { useAtom } from "jotai";
-import { addressAtom } from "../../../atoms/addressAtom";
+import { useAtomValue } from "jotai";
 import { orderParamsAtom } from "../../../atoms/orderParamsAtom";
 import useOrderParams from "../../../hooks/useOrderParams";
 
@@ -15,11 +14,27 @@ export default function AddressPage() {
 
   useOrderParams();
 
-  const [addressData, setAddressData] = useAtom(addressAtom);
-  const [formData, setFormData] = useState(addressData);
+  const [formData, setFormData] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    address: "",
+    notes: "",
+  });
 
-  const [orderParams] = useAtom(orderParamsAtom);
+  const orderParams = useAtomValue(orderParamsAtom);
   const { subtotal, discount, deliveryFee, total } = orderParams;
+
+  useEffect(() => {
+    const savedAddress = localStorage.getItem("address");
+    if (savedAddress) {
+      try {
+        setFormData(JSON.parse(savedAddress));
+      } catch (err) {
+        console.error("Failed to parse address from localStorage", err);
+      }
+    }
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -30,8 +45,9 @@ export default function AddressPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    setAddressData(formData);
-    console.log("User info saved to Jotai:", formData);
+    // Save to localStorage
+    localStorage.setItem("address", JSON.stringify(formData));
+    console.log("User info saved to localStorage:", formData);
 
     router.push(`/checkout`);
   };
