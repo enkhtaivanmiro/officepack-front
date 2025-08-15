@@ -9,7 +9,7 @@ export default function Page() {
     <div className="flex flex-col min-h-screen">
       <Header />
       <main className="flex-1 flex items-center justify-center bg-white text-black">
-        <div className="bg-gray-100 rounded-xl shadow p-8 w-full max-w-md text-center">
+        <div className="bg-gray-100 rounded-xl shadow p-8 max-w-md text-center w-[731px]">
           <div className="flex justify-between text-sm mb-4">
             <div>
               <p className="font-medium">Order number</p>

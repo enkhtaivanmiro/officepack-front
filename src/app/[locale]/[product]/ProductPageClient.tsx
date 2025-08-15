@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useAtom } from "jotai";
+import { useSetAtom } from "jotai";
 import { cartAtom, CartItem } from "../../../atoms/cartAtom";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
@@ -54,7 +54,7 @@ export default function ProductPageClient({
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
 
-  const [cart, setCart] = useAtom(cartAtom);
+  const setCart = useSetAtom(cartAtom);
 
   useEffect(() => {
     async function fetchData() {
@@ -148,17 +148,15 @@ export default function ProductPageClient({
           item.size === newItem.size
       );
 
-      let updatedCart;
       if (existingIndex > -1) {
-        updatedCart = [...prevCart];
-        updatedCart[existingIndex].quantity += quantity;
+        return prevCart.map((item, idx) =>
+          idx === existingIndex
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        );
       } else {
-        updatedCart = [...prevCart, newItem];
+        return [...prevCart, newItem];
       }
-
-      localStorage.setItem("cart", JSON.stringify(updatedCart));
-
-      return updatedCart;
     });
 
     alert("Item added to cart!");
@@ -167,14 +165,15 @@ export default function ProductPageClient({
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="max-w-7xl mx-auto p-6 flex flex-col md:flex-row gap-10 font-satoshi">
-        <div className="flex md:flex-row gap-4 md:gap-6">
-          <div className="flex flex-row md:flex-col gap-2 md:gap-4">
+
+      <main className="mt-8 max-w-7xl mx-auto p-6 flex flex-col md:flex-row gap-10 font-satoshi">
+        <div className="flex flex-col md:flex-row gap-4 md:gap-6 w-full">
+          <div className="flex flex-row md:flex-col gap-2 md:gap-4 w-full md:w-auto overflow-x-auto">
             {images.map((img, idx) => (
               <button
                 key={img.id}
                 onClick={() => setMainImageIndex(idx)}
-                className={`border rounded w-48 h-48 md:w-20 md:h-20 overflow-hidden ${
+                className={`border rounded w-16 h-16 md:w-20 md:h-20 flex-shrink-0 overflow-hidden ${
                   idx === mainImageIndex ? "border-black" : "border-gray-300"
                 }`}
               >
@@ -186,12 +185,13 @@ export default function ProductPageClient({
               </button>
             ))}
           </div>
+
           <div className="flex-1 p-6 rounded-lg flex items-center justify-center">
             {images.length > 0 ? (
               <img
                 src={images[mainImageIndex].url}
                 alt={product.name}
-                className="w-128 h-full object-cover"
+                className="w-full max-w-full h-auto object-cover rounded"
               />
             ) : (
               <div className="w-full h-96 flex items-center justify-center text-gray-600">
@@ -203,7 +203,7 @@ export default function ProductPageClient({
 
         <div className="md:w-1/2 flex flex-col">
           <h1 className="text-3xl font-bold mb-2 text-black">{product.name}</h1>
-          <div className="flex items-center gap-3 mb-3">
+          <div className="flex items-center gap-3 mb-3 flex-wrap">
             <span className="text-3xl font-semibold text-black">₮{price}</span>
             {discountPercent > 0 && (
               <>
@@ -220,11 +220,10 @@ export default function ProductPageClient({
             {product.description}
           </p>
 
-          {/* Color Selector */}
           {attributes.find((a) => a.name.toLowerCase() === "color") && (
             <div className="mb-6">
               <p className="font-extralight mb-4 text-gray-600">Select Color</p>
-              <div className="flex gap-4">
+              <div className="flex gap-4 flex-wrap">
                 {attributeValues
                   .filter(
                     (v) =>
@@ -251,7 +250,7 @@ export default function ProductPageClient({
           {attributes.find((a) => a.name.toLowerCase() === "size") && (
             <div className="mb-6">
               <p className="font-extralight mb-4 text-gray-600">Choose Size</p>
-              <div className="flex gap-4">
+              <div className="flex gap-4 flex-wrap">
                 {attributeValues
                   .filter(
                     (v) =>
@@ -276,7 +275,7 @@ export default function ProductPageClient({
             </div>
           )}
 
-          <div className="flex items-center mb-10 mt-6">
+          <div className="flex flex-col items-center mb-10 mt-6 gap-4">
             <div className="flex flex-nowrap">
               <button
                 onClick={() => setQuantity((qty) => Math.max(1, qty - 1))}
@@ -295,7 +294,7 @@ export default function ProductPageClient({
               </button>
             </div>
             <button
-              className="ml-auto bg-black text-white px-6 py-3 rounded-full w-100"
+              className="ml-auto sm:ml-0 bg-black text-white px-6 py-3 rounded-full md:w-[400px] sm:w-auto"
               onClick={handleAddToCart}
             >
               Add to Cart

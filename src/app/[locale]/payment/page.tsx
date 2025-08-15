@@ -5,6 +5,7 @@ import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import Image from "next/image";
 import { X } from "lucide-react";
+import Link from "next/link";
 
 export default function PaymentPage() {
   const [timeLeft, setTimeLeft] = useState(7 * 60 + 30);
@@ -24,7 +25,7 @@ export default function PaymentPage() {
       <Header />
 
       <main className="flex flex-col items-center justify-center flex-grow px-4">
-        <div className="relative bg-gradient-to-b from-gray-200 to-gray-300 rounded-xl shadow-lg p-8 w-[320px] flex flex-col items-center text-center">
+        <div className="relative bg-gradient-to-b from-gray-200 to-gray-300 rounded-xl shadow-lg mt-14 mb-14 p-8 w-[459px] flex flex-col items-center text-center">
           <button className="absolute top-3 right-3">
             <X size={20} />
           </button>
@@ -51,10 +52,11 @@ export default function PaymentPage() {
               {minutes} min {seconds} sec
             </span>
           </p>
-
-          <button className="bg-gradient-to-b from-gray-100 to-gray-300 rounded-full px-4 py-2 w-full font-medium shadow hover:from-gray-200 hover:to-gray-400">
-            Check the transaction
-          </button>
+          <Link href="/complete">
+            <button className="bg-gradient-to-b from-gray-100 to-gray-300 rounded-full px-4 py-2 w-full font-medium shadow hover:from-gray-200 hover:to-gray-400">
+              Check the transaction
+            </button>
+          </Link>
         </div>
       </main>
 

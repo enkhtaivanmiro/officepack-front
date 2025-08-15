@@ -1,68 +1,80 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import { Trash2 } from "lucide-react";
 import { FaTag } from "react-icons/fa";
 import { useRouter } from "next/navigation";
-import { useAtom } from "jotai";
-import { cartAtom, CartItem as AtomCartItem } from "../../../atoms/cartAtom";
+import { useSetAtom } from "jotai";
+import { cartAtom, CartItem } from "../../../atoms/cartAtom";
+import { orderParamsAtom } from "../../../atoms/orderParamsAtom";
 
 export default function CartPage() {
-  const [cart, setCart] = useAtom<CartItem[]>(cartAtom); // using Jotai atom
+  const setCart = useSetAtom(cartAtom);
+  const setOrderParams = useSetAtom(orderParamsAtom);
   const router = useRouter();
 
-  // Load from localStorage on mount
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedCart = localStorage.getItem("cart");
-      if (storedCart) {
-        setCart(JSON.parse(storedCart));
-      }
-    }
-  }, [setCart]);
+  const [cartSnapshot, setCartSnapshot] = useState<CartItem[]>([]);
 
-  // Sync to localStorage whenever cart changes
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("cart", JSON.stringify(cart));
-    }
-  }, [cart]);
+    setCart((prevCart) => {
+      setCartSnapshot(prevCart);
+      return prevCart;
+    });
+  }, [setCart]);
 
   const updateQuantity = (
     id: string,
-    color: string,
-    size: string,
+    color: string | null,
+    size: string | null,
     change: number
   ) => {
-    const updatedCart = cart.map((item) =>
-      item.id === id && item.color === color && item.size === size
-        ? { ...item, quantity: Math.max(1, item.quantity + change) }
-        : item
-    );
-    setCart(updatedCart);
+    setCart((prevCart) => {
+      const updated = prevCart.map((item) =>
+        item.id === id && item.color === color && item.size === size
+          ? { ...item, quantity: Math.max(1, item.quantity + change) }
+          : item
+      );
+      setCartSnapshot(updated);
+      return updated;
+    });
   };
 
-  const removeItem = (id: string, color: string, size: string) => {
-    const updatedCart = cart.filter(
-      (item) => !(item.id === id && item.color === color && item.size === size)
-    );
-    setCart(updatedCart);
+  const removeItem = (
+    id: string,
+    color: string | null,
+    size: string | null
+  ) => {
+    setCart((prevCart) => {
+      const updated = prevCart.filter(
+        (item) =>
+          !(item.id === id && item.color === color && item.size === size)
+      );
+      setCartSnapshot(updated);
+      return updated;
+    });
   };
 
-  const subtotal = cart.reduce(
+  const subtotal = cartSnapshot.reduce(
     (total, item) => total + item.price * item.quantity,
     0
   );
   const discount = subtotal * 0.2;
-  const deliveryFee = 15;
+  const deliveryFee = 15000;
   const total = subtotal - discount + deliveryFee;
 
+  useEffect(() => {
+    setOrderParams({
+      subtotal,
+      discount,
+      deliveryFee,
+      total,
+    });
+  }, [subtotal, discount, deliveryFee, total, setOrderParams]);
+
   const goToCheckout = () => {
-    router.push(
-      `/checkout?subtotal=${subtotal}&discount=${discount}&delivery=${deliveryFee}&total=${total}`
-    );
+    router.push("/address");
   };
 
   return (
@@ -70,12 +82,11 @@ export default function CartPage() {
       <Header />
 
       <main className="max-w-7xl mx-auto w-full px-6 py-12 flex flex-col md:flex-row gap-8 flex-grow font-satoshi">
-        {/* Cart Items */}
         <div className="md:w-2/3 space-y-4">
-          {cart.length === 0 ? (
+          {cartSnapshot.length === 0 ? (
             <p className="text-gray-500 text-lg">Your cart is empty.</p>
           ) : (
-            cart.map((item, index) => (
+            cartSnapshot.map((item, index) => (
               <div
                 key={`${item.id}-${item.color}-${item.size}-${index}`}
                 className="flex items-center justify-between bg-white rounded-2xl shadow border border-gray-100 px-4 py-4"
@@ -137,7 +148,6 @@ export default function CartPage() {
           )}
         </div>
 
-        {/* Order Summary */}
         <div className="md:w-1/3 bg-white rounded-2xl shadow border p-6 h-fit border-gray-100">
           <h2 className="text-xl font-bold mb-6 text-black">Order Summary</h2>
           <div className="flex justify-between text-gray-700 mb-2">

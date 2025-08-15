@@ -1,37 +1,35 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
-
-type CartItem = {
-  id: string;
-  name: string;
-  color: string;
-  size: string;
-  price: number;
-  quantity: number;
-  image: string;
-};
+import { useAtomValue, useSetAtom } from "jotai";
+import { priceAtom } from "../../../atoms/priceAtom";
+import { cartAtom, CartItem } from "../../../atoms/cartAtom";
+import Link from "next/link";
 
 export default function Checkout() {
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const searchParams = useSearchParams();
-
-  // Get totals from CartPage query params
-  const subtotal = Number(searchParams.get("subtotal")) || 0;
-  const discount = Number(searchParams.get("discount")) || 0;
-  const delivery = Number(searchParams.get("delivery")) || 0;
-  const total = Number(searchParams.get("total")) || 0;
+  const cart = useAtomValue(cartAtom);
+  const setPrice = useSetAtom(priceAtom);
+  const { subtotal, discount, delivery, total } = useAtomValue(priceAtom);
 
   useEffect(() => {
-    const storedCart = localStorage.getItem("cart");
-    if (storedCart) {
-      setCart(JSON.parse(storedCart));
-    }
-  }, []);
+    const newSubtotal = cart.reduce(
+      (acc, item) => acc + item.price * item.quantity,
+      0
+    );
+    const newDiscount = newSubtotal * 0.2;
+    const newDelivery = 15000;
+    const newTotal = newSubtotal - newDiscount + newDelivery;
+
+    setPrice({
+      subtotal: newSubtotal,
+      discount: newDiscount,
+      delivery: newDelivery,
+      total: newTotal,
+    });
+  }, [cart, setPrice]);
 
   return (
     <div className="min-h-screen flex flex-col text-black">
@@ -39,141 +37,73 @@ export default function Checkout() {
 
       <main className="flex-1 flex flex-col md:flex-row gap-8 max-w-6xl w-full mx-auto px-4 py-8 font-satoshi">
         <div className="flex-1 flex flex-col gap-8">
-          <div className="flex-1 flex flex-col gap-8">
-            {" "}
-            <div>
-              {" "}
-              <h3 className="text-base font-semibold mb-3">Pay by card</h3>{" "}
-              <div className="flex items-center gap-2 border border-gray-200 rounded-lg bg-gray-50 px-4 py-3">
-                {" "}
-                <Image
-                  src="/icons/creditcard.png"
-                  alt="Credit/Debit Card"
-                  width={24}
-                  height={24}
-                  className="object-contain"
-                />{" "}
-                <span>Credit/Debit Card</span>{" "}
-              </div>{" "}
-            </div>{" "}
-            <div>
-              {" "}
-              <h3 className="text-base font-semibold mb-3">
-                Pay by E-Wallet
-              </h3>{" "}
-              <div className="grid grid-cols-2 gap-3">
-                {" "}
-                <div className="flex items-center gap-2 border border-gray-200 rounded-lg bg-white px-4 py-3">
-                  {" "}
+          <div>
+            <h3 className="text-base font-semibold mb-3">Pay by card</h3>
+            <div className="flex items-center gap-2 border border-gray-200 rounded-lg bg-gray-50 px-4 py-3">
+              <Image
+                src="/icons/creditcard.png"
+                alt="Credit/Debit Card"
+                width={24}
+                height={24}
+                className="object-contain"
+              />
+              <span>Credit/Debit Card</span>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-base font-semibold mb-3">Pay by E-Wallet</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { src: "/icons/qpay.png", name: "qPay Wallet" },
+                { src: "/icons/socialpay.png", name: "SocialPay" },
+                { src: "/icons/qpos.png", name: "qPOS" },
+                { src: "/icons/digipay.png", name: "DiGi Pay" },
+              ].map((m, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-2 border border-gray-200 rounded-lg bg-white px-4 py-3"
+                >
                   <Image
-                    src="/icons/qpay.png"
-                    alt="qPay Wallet"
+                    src={m.src}
+                    alt={m.name}
                     width={24}
                     height={24}
                     className="object-contain"
-                  />{" "}
-                  <span>qPay Wallet</span>{" "}
-                </div>{" "}
-                <div className="flex items-center gap-2 border border-gray-200 rounded-lg bg-white px-4 py-3">
-                  {" "}
+                  />
+                  <span>{m.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-base font-semibold mb-3">
+              Pay by credit or in installments
+            </h3>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { src: "/icons/hipay.png", name: "HiPay Хэтэвч" },
+                { src: "/icons/monpay.png", name: "Monpay" },
+                { src: "/icons/mcredit.png", name: "M Credit" },
+                { src: "/icons/pocket.png", name: "Pocket" },
+                { src: "/icons/storepay.png", name: "Storepay" },
+              ].map((m, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-2 border border-gray-200 rounded-lg bg-white px-4 py-3"
+                >
                   <Image
-                    src="/icons/socialpay.png"
-                    alt="Голомт SocialPay"
+                    src={m.src}
+                    alt={m.name}
                     width={24}
                     height={24}
                     className="object-contain"
-                  />{" "}
-                  <span>SocialPay</span>{" "}
-                </div>{" "}
-                <div className="flex items-center gap-2 border border-gray-200 rounded-lg bg-white px-4 py-3">
-                  {" "}
-                  <Image
-                    src="/icons/qpos.png"
-                    alt="qPOS"
-                    width={24}
-                    height={24}
-                    className="object-contain"
-                  />{" "}
-                  <span>qPOS</span>{" "}
-                </div>{" "}
-                <div className="flex items-center gap-2 border border-gray-200 rounded-lg bg-white px-4 py-3">
-                  {" "}
-                  <Image
-                    src="/icons/digipay.png"
-                    alt="DiGi Pay"
-                    width={24}
-                    height={24}
-                    className="object-contain"
-                  />{" "}
-                  <span>DiGi Pay</span>{" "}
-                </div>{" "}
-              </div>{" "}
-            </div>{" "}
-            <div>
-              {" "}
-              <h3 className="text-base font-semibold mb-3">
-                {" "}
-                Pay by credit or in installments{" "}
-              </h3>{" "}
-              <div className="grid grid-cols-2 gap-3">
-                {" "}
-                <div className="flex items-center gap-2 border border-gray-200 rounded-lg bg-white px-4 py-3">
-                  {" "}
-                  <Image
-                    src="/icons/hipay.png"
-                    alt="HiPay Хэтэвч"
-                    width={24}
-                    height={24}
-                    className="object-contain"
-                  />{" "}
-                  <span>HiPay Хэтэвч</span>{" "}
-                </div>{" "}
-                <div className="flex items-center gap-2 border border-gray-200 rounded-lg bg-white px-4 py-3">
-                  {" "}
-                  <Image
-                    src="/icons/monpay.png"
-                    alt="Monpay"
-                    width={24}
-                    height={24}
-                    className="object-contain"
-                  />{" "}
-                  <span>Monpay</span>{" "}
-                </div>{" "}
-                <div className="flex items-center gap-2 border border-gray-200 rounded-lg bg-white px-4 py-3">
-                  {" "}
-                  <Image
-                    src="/icons/mcredit.png"
-                    alt="M Credit"
-                    width={24}
-                    height={24}
-                    className="object-contain"
-                  />{" "}
-                  <span>M Credit</span>{" "}
-                </div>{" "}
-                <div className="flex items-center gap-2 border border-gray-200 rounded-lg bg-white px-4 py-3">
-                  {" "}
-                  <Image
-                    src="/icons/pocket.png"
-                    alt="Pocket"
-                    width={24}
-                    height={24}
-                    className="object-contain"
-                  />{" "}
-                  <span>Pocket</span>{" "}
-                </div>{" "}
-                <div className="flex items-center gap-2 border border-gray-200 rounded-lg bg-white px-4 py-3">
-                  {" "}
-                  <Image
-                    src="/icons/storepay.png"
-                    alt="Storepay"
-                    width={24}
-                    height={24}
-                    className="object-contain"
-                  />{" "}
-                  <span>Storepay</span>{" "}
-                </div>{" "}
-              </div>{" "}
-            </div>{" "}
+                  />
+                  <span>{m.name}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -207,15 +137,15 @@ export default function Checkout() {
               <div className="mt-4 border-t border-gray-200 pt-4 text-xl font-normal">
                 <div className="flex justify-between py-1 text-gray-500 mb-1 mt-6">
                   <span>Subtotal</span>
-                  <span className="text-lg ">₮{subtotal}</span>
+                  <span className="text-lg">₮{subtotal}</span>
                 </div>
                 <div className="flex justify-between py-1 text-gray-500 mb-1">
                   <span>Discount</span>
-                  <span className="text-red-500">-₮{discount}</span>
+                  <span className="text-red-500 text-lg ">-₮{discount}</span>
                 </div>
                 <div className="flex justify-between py-1 text-gray-500 mb-1">
                   <span>Delivery</span>
-                  <span>₮{delivery}</span>
+                  <span className="text-lg">₮{delivery}</span>
                 </div>
                 <div className="flex justify-between py-1 mb-5">
                   <span>Total</span>
