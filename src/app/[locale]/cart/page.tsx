@@ -1,80 +1,30 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import { Trash2 } from "lucide-react";
 import { FaTag } from "react-icons/fa";
 import { useRouter } from "next/navigation";
-import { useSetAtom } from "jotai";
-import { cartAtom, CartItem } from "../../../atoms/cartAtom";
-import { orderParamsAtom } from "../../../atoms/orderParamsAtom";
+import { useCart } from "../../../hooks/useCart";
 
 export default function CartPage() {
-  const setCart = useSetAtom(cartAtom);
-  const setOrderParams = useSetAtom(orderParamsAtom);
+  const { cart, removeFromCart, increaseQuantity, decreaseQuantity } =
+    useCart();
   const router = useRouter();
+  const [promoCode, setPromoCode] = useState("");
 
-  const [cartSnapshot, setCartSnapshot] = useState<CartItem[]>([]);
-
-  useEffect(() => {
-    setCart((prevCart) => {
-      setCartSnapshot(prevCart);
-      return prevCart;
-    });
-  }, [setCart]);
-
-  const updateQuantity = (
-    id: string,
-    color: string | null,
-    size: string | null,
-    change: number
-  ) => {
-    setCart((prevCart) => {
-      const updated = prevCart.map((item) =>
-        item.id === id && item.color === color && item.size === size
-          ? { ...item, quantity: Math.max(1, item.quantity + change) }
-          : item
-      );
-      setCartSnapshot(updated);
-      return updated;
-    });
-  };
-
-  const removeItem = (
-    id: string,
-    color: string | null,
-    size: string | null
-  ) => {
-    setCart((prevCart) => {
-      const updated = prevCart.filter(
-        (item) =>
-          !(item.id === id && item.color === color && item.size === size)
-      );
-      setCartSnapshot(updated);
-      return updated;
-    });
-  };
-
-  const subtotal = cartSnapshot.reduce(
-    (total, item) => total + item.price * item.quantity,
-    0
-  );
+  const subtotal = cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const discount = subtotal * 0.2;
   const deliveryFee = 15000;
   const total = subtotal - discount + deliveryFee;
 
-  useEffect(() => {
-    setOrderParams({
-      subtotal,
-      discount,
-      deliveryFee,
-      total,
-    });
-  }, [subtotal, discount, deliveryFee, total, setOrderParams]);
-
-  const goToCheckout = () => {
-    router.push("/address");
+  const handleCheckout = () => {
+    localStorage.setItem(
+      "cartTotals",
+      JSON.stringify({ subtotal, discount, deliveryFee, total })
+    );
+    router.push("/checkout");
   };
 
   return (
@@ -83,10 +33,10 @@ export default function CartPage() {
 
       <main className="max-w-7xl mx-auto w-full px-6 py-12 flex flex-col md:flex-row gap-8 flex-grow font-satoshi">
         <div className="md:w-2/3 space-y-4">
-          {cartSnapshot.length === 0 ? (
+          {cart.length === 0 ? (
             <p className="text-gray-500 text-lg">Your cart is empty.</p>
           ) : (
-            cartSnapshot.map((item, index) => (
+            cart.map((item, index) => (
               <div
                 key={`${item.id}-${item.color}-${item.size}-${index}`}
                 className="flex items-center justify-between bg-white rounded-2xl shadow border border-gray-100 px-4 py-4"
@@ -113,7 +63,7 @@ export default function CartPage() {
 
                 <div className="flex flex-col justify-between items-end h-32">
                   <button
-                    onClick={() => removeItem(item.id, item.color, item.size)}
+                    onClick={() => removeFromCart(item.id, item.variantId)}
                     className="text-red-500 hover:text-red-600"
                   >
                     <Trash2 size={20} />
@@ -121,9 +71,7 @@ export default function CartPage() {
 
                   <div className="flex items-center">
                     <button
-                      onClick={() =>
-                        updateQuantity(item.id, item.color, item.size, -1)
-                      }
+                      onClick={() => decreaseQuantity(item.id, item.variantId)}
                       className="w-10 h-10 rounded-l-full flex justify-center items-center text-2xl bg-gray-200 text-black"
                     >
                       −
@@ -134,9 +82,7 @@ export default function CartPage() {
                       </span>
                     </div>
                     <button
-                      onClick={() =>
-                        updateQuantity(item.id, item.color, item.size, 1)
-                      }
+                      onClick={() => increaseQuantity(item.id, item.variantId)}
                       className="w-10 h-10 rounded-r-full flex justify-center items-center text-2xl bg-gray-200 text-black"
                     >
                       +
@@ -172,6 +118,8 @@ export default function CartPage() {
               <FaTag className="text-gray-400 mr-2" />
               <input
                 type="text"
+                value={promoCode}
+                onChange={(e) => setPromoCode(e.target.value)}
                 placeholder="Add promo code"
                 className="flex-grow bg-transparent focus:outline-none font-extralight text-gray-600"
               />
@@ -183,7 +131,7 @@ export default function CartPage() {
 
           <button
             type="button"
-            onClick={goToCheckout}
+            onClick={handleCheckout}
             className="w-full bg-black text-white text-base py-3 rounded-full hover:bg-gray-800 flex items-center justify-center gap-3"
           >
             Go to Checkout →

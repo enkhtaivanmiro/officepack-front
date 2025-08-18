@@ -1,38 +1,26 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useSetAtom } from "jotai";
-import { cartAtom, CartItem } from "../../../atoms/cartAtom";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
-import Card from "../../components/Card";
+import { CartItem } from "../../../atoms/cartAtom";
+import { useCart } from "../../../hooks/useCart";
 
 type Product = {
   id: string;
   name: string;
   description: string;
-  price?: number | null;
-  selling_price?: number | null;
+  price?: number;
+  selling_price?: number;
 };
-
-type Image = {
-  id: string;
-  url: string;
-  product_id: string;
-};
-
-type Attribute = {
-  id: string;
-  name: string;
-};
-
+type Image = { id: string; url: string; product_id: string };
+type Attribute = { id: string; name: string };
 type AttributeValue = {
   id: string;
   attribute_id: string;
   name: string;
   presentation: string;
 };
-
 type Variant = {
   id: string;
   product_id: string;
@@ -41,6 +29,7 @@ type Variant = {
   stock: number;
   is_drop: boolean;
   is_master: boolean;
+  attribute_value_ids: string[];
 };
 
 interface ProductPageClientProps {
@@ -57,6 +46,7 @@ export default function ProductPageClient({
   const [attributes, setAttributes] = useState<Attribute[]>([]);
   const [attributeValues, setAttributeValues] = useState<AttributeValue[]>([]);
   const [variants, setVariants] = useState<Variant[]>([]);
+  const [currentVariant, setCurrentVariant] = useState<Variant | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -65,137 +55,140 @@ export default function ProductPageClient({
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
 
-  const setCart = useSetAtom(cartAtom);
+  const { addToCart } = useCart();
+
+  const colorAttr = attributes.find((a) => a.name.toLowerCase() === "color");
+  const sizeAttr = attributes.find((a) => a.name.toLowerCase() === "size");
 
   useEffect(() => {
-    async function fetchData() {
+    const fetchData = async () => {
       try {
-        setLoading(true);
+        const [prodRes, imgRes, attrRes, valRes, varRes] = await Promise.all([
+          fetch(`http://localhost:3000/product/${productId}`).then((r) =>
+            r.json()
+          ),
+          fetch(`http://localhost:3000/images`).then((r) => r.json()),
+          fetch(`http://localhost:3000/attribute`).then((r) => r.json()),
+          fetch(`http://localhost:3000/attribute_value`).then((r) => r.json()),
+          fetch(`http://localhost:3000/product/${productId}/variants`).then(
+            (r) => r.json()
+          ),
+        ]);
 
-        const resProducts = await fetch("http://localhost:3000/product");
-        if (!resProducts.ok) throw new Error("Failed to fetch products");
-        const products: Product[] = await resProducts.json();
-        const foundProduct = products.find((p) => p.id === productId);
-        if (!foundProduct) throw new Error("Product not found");
-        setProduct(foundProduct);
-
-        const resImages = await fetch("http://localhost:3000/images");
-        if (!resImages.ok) throw new Error("Failed to fetch images");
-        const allImages: Image[] = await resImages.json();
-        setImages(allImages.filter((img) => img.product_id === productId));
-
-        const resAttributes = await fetch("http://localhost:3000/attribute");
-        if (!resAttributes.ok) throw new Error("Failed to fetch attributes");
-        const attrs: Attribute[] = await resAttributes.json();
-        setAttributes(attrs);
-
-        const resAttrValues = await fetch(
-          "http://localhost:3000/attribute_value"
-        );
-        if (!resAttrValues.ok)
-          throw new Error("Failed to fetch attribute values");
-        const attrVals: AttributeValue[] = await resAttrValues.json();
-        setAttributeValues(attrVals);
-
-        const resVariants = await fetch("http://localhost:3000/variant");
-        if (!resVariants.ok) throw new Error("Failed to fetch variants");
-        const allVariants: Variant[] = await resVariants.json();
-        setVariants(allVariants.filter((v) => v.product_id === productId));
-
-        const colorAttr = attrs.find((a) => a.name.toLowerCase() === "color");
-        const sizeAttr = attrs.find((a) => a.name.toLowerCase() === "size");
-
-        if (colorAttr) {
-          const colorValues = attrVals.filter(
-            (v) => v.attribute_id === colorAttr.id
-          );
-          if (colorValues.length > 0)
-            setSelectedColor(colorValues[0].presentation);
-        }
-
-        if (sizeAttr) {
-          const sizeValues = attrVals.filter(
-            (v) => v.attribute_id === sizeAttr.id
-          );
-          if (sizeValues.length > 0)
-            setSelectedSize(sizeValues[0].presentation);
-        }
-      } catch (err: any) {
-        setError(err.message || "Unknown error");
+        setProduct(prodRes);
+        setImages(imgRes.filter((i: Image) => i.product_id === productId));
+        setAttributes(attrRes);
+        setAttributeValues(valRes);
+        setVariants(varRes);
+      } catch (e) {
+        console.error(e);
+        setError("Failed to load product data");
       } finally {
         setLoading(false);
       }
-    }
-
+    };
     fetchData();
   }, [productId]);
 
-  if (loading) return <p className="text-center mt-10">Loading product...</p>;
-  if (error) return <p className="text-center mt-10 text-red-600">{error}</p>;
-  if (!product) return null;
+  const availableColors = attributeValues
+    .filter((av) => colorAttr && av.attribute_id === colorAttr.id)
+    .filter((av) =>
+      variants.some((v) => v.attribute_value_ids.includes(av.id))
+    );
 
-  const price = product.selling_price ?? product.price ?? 0;
-  const originalPrice = product.price ?? price;
+  const availableSizes = attributeValues
+    .filter((av) => sizeAttr && av.attribute_id === sizeAttr.id)
+    .filter((av) =>
+      variants.some((v) => v.attribute_value_ids.includes(av.id))
+    );
+
+  useEffect(() => {
+    const selectedIds: string[] = [];
+
+    if (selectedColor && colorAttr) {
+      const val = attributeValues.find(
+        (av) =>
+          av.presentation === selectedColor && av.attribute_id === colorAttr.id
+      );
+      if (val) selectedIds.push(val.id);
+    }
+
+    if (selectedSize && sizeAttr) {
+      const val = attributeValues.find(
+        (av) =>
+          av.presentation === selectedSize && av.attribute_id === sizeAttr.id
+      );
+      if (val) selectedIds.push(val.id);
+    }
+
+    if (selectedIds.length === 0) {
+      setCurrentVariant(null);
+      return;
+    }
+
+    const matchingVariant = variants.find((v) =>
+      selectedIds.every((id) => v.attribute_value_ids.includes(id))
+    );
+
+    setCurrentVariant(matchingVariant || null);
+  }, [
+    selectedColor,
+    selectedSize,
+    variants,
+    attributeValues,
+    colorAttr,
+    sizeAttr,
+  ]);
+
+  const price =
+    currentVariant?.selling_price ??
+    currentVariant?.price ??
+    product?.price ??
+    0;
+  const originalPrice = currentVariant?.price ?? product?.price ?? 0;
   const discountPercent =
-    product.price && product.selling_price
-      ? Math.round(
-          ((product.price - product.selling_price) / product.price) * 100
-        )
+    originalPrice > price
+      ? Math.round(((originalPrice - price) / originalPrice) * 100)
       : 0;
 
   const handleAddToCart = () => {
-    if (!product || !selectedColor || !selectedSize) return;
+    if (!currentVariant) {
+      alert("Please select a valid color and size combination");
+      return;
+    }
 
-    const colorAttr = attributes.find((a) => a.name.toLowerCase() === "color");
-    const sizeAttr = attributes.find((a) => a.name.toLowerCase() === "size");
-
-    const colorValue = attributeValues.find(
-      (v) =>
-        v.attribute_id === colorAttr?.id && v.presentation === selectedColor
-    );
-
-    const sizeValue = attributeValues.find(
-      (v) => v.attribute_id === sizeAttr?.id && v.presentation === selectedSize
-    );
-
-    const matchedVariant = variants[0];
-
-    const newItem: CartItem = {
-      id: product.id,
-      name: product.name,
+    const item: CartItem = {
+      id: product!.id,
+      name: product!.name,
       color: selectedColor,
       size: selectedSize,
-      price: matchedVariant?.selling_price ?? matchedVariant?.price ?? price,
       quantity,
-      image: images[mainImageIndex]?.url || "",
-      variantId: matchedVariant?.id || "",
+      price,
+      image: images[mainImageIndex]?.url ?? "",
+      variantId: currentVariant.id,
     };
 
-    setCart((prevCart) => {
-      const existingIndex = prevCart.findIndex(
-        (item) => item.id === newItem.id && item.variantId === newItem.variantId
-      );
-
-      const updatedCart =
-        existingIndex > -1
-          ? prevCart.map((item, idx) =>
-              idx === existingIndex
-                ? { ...item, quantity: item.quantity + quantity }
-                : item
-            )
-          : [...prevCart, newItem];
-
-      localStorage.setItem("cart", JSON.stringify(updatedCart));
-      return updatedCart;
-    });
-
-    alert("Item added to cart!");
+    addToCart(item);
+    alert("Added to cart!");
   };
+
+  if (loading)
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
+
+  if (error || !product)
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-500">
+        {error}
+      </div>
+    );
 
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-
       <main className="mt-8 max-w-7xl mx-auto p-6 flex flex-col md:flex-row gap-10 font-satoshi">
         <div className="flex flex-col md:flex-row gap-4 md:gap-6 w-full">
           <div className="flex flex-row md:flex-col gap-2 md:gap-4 w-full md:w-auto overflow-x-auto">
@@ -215,7 +208,6 @@ export default function ProductPageClient({
               </button>
             ))}
           </div>
-
           <div className="flex-1 p-6 rounded-lg flex items-center justify-center">
             {images.length > 0 ? (
               <img
@@ -250,65 +242,51 @@ export default function ProductPageClient({
             {product.description}
           </p>
 
-          {attributes.find((a) => a.name.toLowerCase() === "color") && (
+          {colorAttr && (
             <div className="mb-6">
               <p className="font-extralight mb-4 text-gray-600">Select Color</p>
               <div className="flex gap-4 flex-wrap">
-                {attributeValues
-                  .filter(
-                    (v) =>
-                      v.attribute_id ===
-                      attributes.find((a) => a.name.toLowerCase() === "color")
-                        ?.id
-                  )
-                  .map((val) => (
-                    <button
-                      key={val.id}
-                      onClick={() => setSelectedColor(val.presentation)}
-                      style={{ backgroundColor: val.name }}
-                      className="w-9 h-9 rounded-full flex items-center justify-center"
-                    >
-                      {selectedColor === val.presentation && (
-                        <span className="text-white text-sm font-bold">✓</span>
-                      )}
-                    </button>
-                  ))}
+                {availableColors.map((val) => (
+                  <button
+                    key={val.id}
+                    onClick={() => setSelectedColor(val.presentation)}
+                    style={{ backgroundColor: val.name }}
+                    className="w-9 h-9 rounded-full flex items-center justify-center"
+                  >
+                    {selectedColor === val.presentation && (
+                      <span className="text-white text-sm font-bold">✓</span>
+                    )}
+                  </button>
+                ))}
               </div>
             </div>
           )}
 
-          {attributes.find((a) => a.name.toLowerCase() === "size") && (
+          {sizeAttr && (
             <div className="mb-6">
               <p className="font-extralight mb-4 text-gray-600">Choose Size</p>
               <div className="flex gap-4 flex-wrap">
-                {attributeValues
-                  .filter(
-                    (v) =>
-                      v.attribute_id ===
-                      attributes.find((a) => a.name.toLowerCase() === "size")
-                        ?.id
-                  )
-                  .map((val) => (
-                    <button
-                      key={val.id}
-                      onClick={() => setSelectedSize(val.presentation)}
-                      className={`px-6 py-3 rounded-full ${
-                        selectedSize === val.presentation
-                          ? "bg-black text-white"
-                          : "bg-gray-200 text-gray-600"
-                      }`}
-                    >
-                      {val.presentation}
-                    </button>
-                  ))}
+                {availableSizes.map((val) => (
+                  <button
+                    key={val.id}
+                    onClick={() => setSelectedSize(val.presentation)}
+                    className={`px-6 py-3 rounded-full ${
+                      selectedSize === val.presentation
+                        ? "bg-black text-white"
+                        : "bg-gray-200 text-gray-600"
+                    }`}
+                  >
+                    {val.presentation}
+                  </button>
+                ))}
               </div>
             </div>
           )}
 
-          <div className="flex flex-col items-center mb-10 mt-6 gap-4">
+          <div className="flex flex-row items-center mb-10 mt-6 gap-4">
             <div className="flex flex-nowrap">
               <button
-                onClick={() => setQuantity((qty) => Math.max(1, qty - 1))}
+                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                 className="w-12 h-12 rounded-l-full flex justify-center items-center text-2xl bg-gray-200 text-black"
               >
                 −
@@ -317,45 +295,21 @@ export default function ProductPageClient({
                 <span className="text-xl text-black">{quantity}</span>
               </div>
               <button
-                onClick={() => setQuantity((qty) => qty + 1)}
+                onClick={() => setQuantity((q) => q + 1)}
                 className="w-12 h-12 rounded-r-full flex justify-center items-center text-2xl bg-gray-200 text-black"
               >
                 +
               </button>
             </div>
             <button
-              className="ml-auto sm:ml-0 bg-black text-white px-6 py-3 rounded-full md:w-[400px] sm:w-auto"
               onClick={handleAddToCart}
+              className="ml-auto sm:ml-0 bg-black text-white px-6 py-3 rounded-full md:w-[400px] sm:w-auto"
             >
               Add to Cart
             </button>
           </div>
         </div>
       </main>
-
-      <section className="max-w-7xl mx-auto px-6 pb-12">
-        <h2 className="text-3xl font-bold mb-20 text-center text-black mt-20">
-          YOU MIGHT ALSO LIKE
-        </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          {images.length > 0 ? (
-            images.map((img) => (
-              <Card
-                key={img.id}
-                id={product.id}
-                name={product.name}
-                image={img.url}
-                price={product.selling_price ?? product.price ?? 0}
-              />
-            ))
-          ) : (
-            <p className="text-center text-gray-500 col-span-full">
-              No related products available
-            </p>
-          )}
-        </div>
-      </section>
-
       <Footer />
     </div>
   );

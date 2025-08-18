@@ -18,6 +18,30 @@ export default function Checkout() {
   const router = useRouter();
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
 
+  // Restore expired orders on page load
+  useEffect(() => {
+    const restoreExpired = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:3000/orders/restore-expired",
+          {
+            method: "POST",
+          }
+        );
+        if (!response.ok) {
+          console.error("Failed to restore expired orders");
+        } else {
+          const result = await response.json();
+          console.log("Restored expired orders:", result);
+        }
+      } catch (err) {
+        console.error("Error restoring expired orders:", err);
+      }
+    };
+
+    restoreExpired();
+  }, []);
+
   // Load cart from localStorage on mount
   useEffect(() => {
     const storedCart = localStorage.getItem("cart");
@@ -76,7 +100,7 @@ export default function Checkout() {
       const payload = {
         full_name: addressData.name,
         email: addressData.email,
-        phone_number: addressData.phone,
+        phone_number: addressData.email,
         address: addressData.address,
         status: "pending",
         items: items,

@@ -17,6 +17,48 @@ export default function PaymentPage() {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    if (timeLeft === 0) {
+      try {
+        const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+
+        cart.forEach(async (item: any) => {
+          try {
+            // 1️⃣ Fetch the current stock first
+            const res = await fetch(
+              `http://localhost:3000/variant/${item.variantId}/stock`
+            );
+            if (!res.ok) throw new Error("Failed to fetch stock");
+            const data = await res.json();
+
+            const currentStock = data.stock ?? 0;
+            const newStock = currentStock + item.quantity;
+
+            // 2️⃣ Restore stock
+            await fetch(
+              `http://localhost:3000/variant/${item.variantId}/stock`,
+              {
+                method: "PATCH",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ stock: newStock }),
+              }
+            );
+
+            console.log(
+              `Restored ${item.quantity} to variant ${item.variantId}, new stock = ${newStock}`
+            );
+          } catch (err) {
+            console.error("Error restoring stock:", err);
+          }
+        });
+      } catch (err) {
+        console.error("Error reading cart:", err);
+      }
+    }
+  }, [timeLeft]);
+
   const minutes = String(Math.floor(timeLeft / 60)).padStart(2, "0");
   const seconds = String(timeLeft % 60).padStart(2, "0");
 
