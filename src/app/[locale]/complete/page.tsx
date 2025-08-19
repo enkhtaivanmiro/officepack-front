@@ -1,10 +1,15 @@
+"use client";
+
 import React from "react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
-export default function Page() {
+export default function OrderConfirmationPage() {
+  const t = useTranslations("OrderConfirmation");
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
@@ -12,11 +17,11 @@ export default function Page() {
         <div className="bg-gray-100 rounded-xl shadow p-8 max-w-md text-center w-[731px]">
           <div className="flex justify-between text-sm mb-4">
             <div>
-              <p className="font-medium">Order number</p>
+              <p className="font-medium">{t("orderNumber")}</p>
               <p className="text-gray-500">##########</p>
             </div>
             <div>
-              <p className="font-medium">Order Date</p>
+              <p className="font-medium">{t("orderDate")}</p>
               <p className="text-gray-500">****.**.**</p>
             </div>
           </div>
@@ -24,7 +29,7 @@ export default function Page() {
           <hr className="my-4 border-gray-300" />
 
           <div className="flex justify-between text-lg font-medium mb-4">
-            <span>Total</span>
+            <span>{t("total")}</span>
             <span>₮600</span>
           </div>
 
@@ -38,10 +43,10 @@ export default function Page() {
             />
           </div>
 
-          <p className="font-semibold mb-4">Thank you for your purchase</p>
+          <p className="font-semibold mb-4">{t("thankYou")}</p>
           <Link href="/en">
             <button className="px-6 py-2 bg-gray-200 rounded-full shadow-sm hover:bg-gray-300 transition">
-              Go Home
+              {t("goHome")}
             </button>
           </Link>
         </div>

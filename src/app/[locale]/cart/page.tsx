@@ -7,16 +7,19 @@ import { Trash2 } from "lucide-react";
 import { FaTag } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { useCart } from "../../../hooks/useCart";
+import { useTranslations } from "next-intl";
 
 export default function CartPage() {
   const { cart, removeFromCart, increaseQuantity, decreaseQuantity } =
     useCart();
   const router = useRouter();
   const [promoCode, setPromoCode] = useState("");
+  const t = useTranslations("Cart");
 
+  // Calculations
   const subtotal = cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
-  const discount = subtotal * 0.2;
-  const deliveryFee = 15000;
+  const discount = subtotal * 0.2; // test value
+  const deliveryFee = 15000; // test value
   const total = subtotal - discount + deliveryFee;
 
   const handleCheckout = () => {
@@ -24,7 +27,7 @@ export default function CartPage() {
       "cartTotals",
       JSON.stringify({ subtotal, discount, deliveryFee, total })
     );
-    router.push("/checkout");
+    router.push("/address");
   };
 
   return (
@@ -32,15 +35,17 @@ export default function CartPage() {
       <Header />
 
       <main className="max-w-7xl mx-auto w-full px-6 py-12 flex flex-col md:flex-row gap-8 flex-grow font-satoshi">
+        {/* Cart Items */}
         <div className="md:w-2/3 space-y-4">
           {cart.length === 0 ? (
-            <p className="text-gray-500 text-lg">Your cart is empty.</p>
+            <p className="text-gray-500 text-lg">{t("empty")}</p>
           ) : (
             cart.map((item, index) => (
               <div
                 key={`${item.id}-${item.color}-${item.size}-${index}`}
                 className="flex items-center justify-between bg-white rounded-2xl shadow border border-gray-100 px-4 py-4"
               >
+                {/* Product Info */}
                 <div className="flex items-center gap-4">
                   <img
                     src={item.image}
@@ -61,6 +66,7 @@ export default function CartPage() {
                   </div>
                 </div>
 
+                {/* Actions */}
                 <div className="flex flex-col justify-between items-end h-32">
                   <button
                     onClick={() => removeFromCart(item.id, item.variantId)}
@@ -94,47 +100,52 @@ export default function CartPage() {
           )}
         </div>
 
+        {/* Order Summary */}
         <div className="md:w-1/3 bg-white rounded-2xl shadow border p-6 h-fit border-gray-100">
-          <h2 className="text-xl font-bold mb-6 text-black">Order Summary</h2>
+          <h2 className="text-xl font-bold mb-6 text-black">
+            {t("orderSummary")}
+          </h2>
           <div className="flex justify-between text-gray-700 mb-2">
-            <span>Subtotal</span>
+            <span>{t("subtotal")}</span>
             <span className="font-bold text-black">₮{subtotal}</span>
           </div>
           <div className="flex justify-between text-gray-700 mb-2">
-            <span>Discount (-20%)</span>
+            <span>{t("discount")}</span>
             <span className="text-red-500 font-bold">-₮{discount}</span>
           </div>
           <div className="flex justify-between text-gray-700 mb-4">
-            <span>Delivery Fee</span>
+            <span>{t("deliveryFee")}</span>
             <span className="font-bold text-black">₮{deliveryFee}</span>
           </div>
           <div className="flex justify-between font-bold text-lg border-t pt-4 mb-6 text-black">
-            <span>Total</span>
+            <span>{t("total")}</span>
             <span className="text-black">₮{total}</span>
           </div>
 
+          {/* Promo Code Input */}
           <div className="flex mb-4">
-            <div className="flex items-center bg-gray-100 rounded-full px-4 py-2">
+            <div className="flex items-center bg-gray-100 rounded-full px-4 py-2 flex-grow">
               <FaTag className="text-gray-400 mr-2" />
               <input
                 type="text"
                 value={promoCode}
                 onChange={(e) => setPromoCode(e.target.value)}
-                placeholder="Add promo code"
+                placeholder={t("promoPlaceholder")}
                 className="flex-grow bg-transparent focus:outline-none font-extralight text-gray-600"
               />
             </div>
             <button className="bg-black rounded-full px-4 py-2 text-white h-12 w-32 text-base ml-3">
-              Apply
+              {t("apply")}
             </button>
           </div>
 
+          {/* Checkout Button */}
           <button
             type="button"
             onClick={handleCheckout}
             className="w-full bg-black text-white text-base py-3 rounded-full hover:bg-gray-800 flex items-center justify-center gap-3"
           >
-            Go to Checkout →
+            {t("checkout")}
           </button>
         </div>
       </main>

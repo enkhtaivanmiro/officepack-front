@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Card from "../components/Card";
@@ -24,6 +25,8 @@ type Image = {
 export default function Page() {
   const pathname = usePathname();
   const locale = pathname?.split("/")[1] ?? "en";
+
+  const t = useTranslations("Index");
 
   const [products, setProducts] = useState<Product[]>([]);
   const [images, setImages] = useState<Image[]>([]);
@@ -67,17 +70,18 @@ export default function Page() {
       >
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between px-6 py-16 h-full">
           <div className="text-black font-bold text-4xl md:text-5xl leading-tight mb-8 md:mb-0 p-4 rounded-lg">
-            <p>NEW</p>
-            <p>MERCH</p>
-            <p>OUT NOW!</p>
-            <button>CHECK OUT</button>
+            <p>{t("hero_new")}</p>
+            <p>{t("hero_merch")}</p>
+            <p>{t("hero_out_now")}</p>
+            <button>{t("hero_cta")}</button>
           </div>
         </div>
       </div>
 
       <h1 className="font-bold text-black text-center mt-25 text-3xl mb-25">
-        CHEER FOR THE HUNS IN OUR OFFICIAL JERSEY
+        {t("official_jersey")}
       </h1>
+
       <main className="flex-grow max-w-7xl mx-auto px-6 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
         {products.map((p) => {
           const productImage = images.find((img) => img.product_id === p.id);

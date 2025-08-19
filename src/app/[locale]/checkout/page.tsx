@@ -4,140 +4,94 @@ import { useEffect, useState } from "react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import Image from "next/image";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useCart } from "../../../hooks/useCart";
+import { useSetAtom, useAtomValue } from "jotai";
 import { priceAtom } from "../../../atoms/priceAtom";
-import { cartAtom } from "../../../atoms/cartAtom";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 export default function Checkout() {
-  const cart = useAtomValue(cartAtom);
-  const setCart = useSetAtom(cartAtom);
+  const t = useTranslations("Checkout");
+  const { cart, clearCart } = useCart();
   const setPrice = useSetAtom(priceAtom);
-  const { subtotal, discount, delivery, total } = useAtomValue(priceAtom);
-
+  const price = useAtomValue(priceAtom);
   const router = useRouter();
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
 
-  // Restore expired orders on page load
+  // Restore expired orders on mount
   useEffect(() => {
-    const restoreExpired = async () => {
-      try {
-        const response = await fetch(
-          "http://localhost:3000/orders/restore-expired",
-          {
-            method: "POST",
-          }
-        );
-        if (!response.ok) {
-          console.error("Failed to restore expired orders");
-        } else {
-          const result = await response.json();
-          console.log("Restored expired orders:", result);
-        }
-      } catch (err) {
-        console.error("Error restoring expired orders:", err);
-      }
-    };
-
-    restoreExpired();
+    fetch("http://localhost:3000/orders/restore-expired", { method: "POST" })
+      .then((res) =>
+        res.ok ? res.json() : console.error("Failed to restore expired orders")
+      )
+      .then((result) => console.log("Restored expired orders:", result))
+      .catch((err) => console.error("Error restoring expired orders:", err));
   }, []);
 
-  // Load cart from localStorage on mount
+  // Load cart totals
   useEffect(() => {
-    const storedCart = localStorage.getItem("cart");
-    if (storedCart) {
-      try {
-        setCart(JSON.parse(storedCart));
-      } catch (err) {
-        console.error("Failed to parse cart from localStorage", err);
-      }
+    const storedTotals = localStorage.getItem("cartTotals");
+    if (storedTotals) {
+      setPrice(JSON.parse(storedTotals));
+    } else {
+      const subtotal = cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
+      const discount = subtotal * 0.2;
+      const delivery = 15000;
+      const total = subtotal - discount + delivery;
+      setPrice({ subtotal, discount, delivery, total });
     }
-  }, [setCart]);
-
-  // Update localStorage whenever cart changes
-  useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cart));
-  }, [cart]);
-
-  // Update pricing whenever cart changes
-  useEffect(() => {
-    const newSubtotal = cart.reduce(
-      (acc, item) => acc + item.price * item.quantity,
-      0
-    );
-    const newDiscount = newSubtotal * 0.2;
-    const newDelivery = 15000;
-    const newTotal = newSubtotal - newDiscount + newDelivery;
-
-    setPrice({
-      subtotal: newSubtotal,
-      discount: newDiscount,
-      delivery: newDelivery,
-      total: newTotal,
-    });
   }, [cart, setPrice]);
 
-  // Handle Pay button
   const handlePay = async () => {
-    if (!selectedPayment) {
-      alert("Please select a payment method!");
-      return;
-    }
+    if (!selectedPayment) return alert(t("selectPaymentAlert"));
+
+    const addressData = localStorage.getItem("address");
+    if (!addressData) return alert(t("provideAddressAlert"));
+
+    const parsedAddress = JSON.parse(addressData);
+
+    const items = cart.map((item) => ({
+      variant_id: item.variantId,
+      quantity: item.quantity,
+    }));
 
     try {
-      const address = localStorage.getItem("address");
-      if (!address) {
-        alert("Please provide your address before proceeding!");
-        return;
-      }
-      const addressData = JSON.parse(address);
-
-      const items = cart.map((item) => ({
-        variant_id: item.variantId,
-        quantity: item.quantity,
-      }));
-
-      const payload = {
-        full_name: addressData.name,
-        email: addressData.email,
-        phone_number: addressData.email,
-        address: addressData.address,
-        status: "pending",
-        items: items,
-      };
-
       const response = await fetch("http://localhost:3000/orders", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          full_name: parsedAddress.name,
+          email: parsedAddress.email,
+          phone_number: parsedAddress.phone,
+          address: parsedAddress.address,
+          status: "pending",
+          items,
+        }),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to create order");
-      }
+      if (!response.ok) throw new Error("Failed to create order");
 
       const result = await response.json();
       console.log("Order created successfully:", result);
 
+      clearCart();
       localStorage.removeItem("cart");
-      setCart([]);
+      localStorage.removeItem("cartTotals");
 
       router.push("/payment");
     } catch (err) {
       console.error(err);
-      alert("Something went wrong while creating the order.");
+      alert(t("orderCreationError"));
     }
   };
 
   const paymentGroups = [
     {
-      title: "Pay by card",
-      methods: [{ src: "/icons/creditcard.png", name: "Credit/Debit Card" }],
+      title: t("payByCard"),
+      methods: [{ src: "/icons/creditcard.png", name: t("creditDebitCard") }],
     },
     {
-      title: "Pay by E-Wallet",
+      title: t("payByEWallet"),
       methods: [
         { src: "/icons/qpay.png", name: "qPay Wallet" },
         { src: "/icons/socialpay.png", name: "SocialPay" },
@@ -146,9 +100,9 @@ export default function Checkout() {
       ],
     },
     {
-      title: "Pay by credit or in installments",
+      title: t("payByInstallments"),
       methods: [
-        { src: "/icons/hipay.png", name: "HiPay Хэтэвч" },
+        { src: "/icons/hipay.png", name: "HiPay" },
         { src: "/icons/monpay.png", name: "Monpay" },
         { src: "/icons/mcredit.png", name: "M Credit" },
         { src: "/icons/pocket.png", name: "Pocket" },
@@ -162,6 +116,7 @@ export default function Checkout() {
       <Header />
 
       <main className="flex-1 flex flex-col md:flex-row gap-8 max-w-6xl w-full mx-auto px-4 py-8 font-satoshi">
+        {/* Payment Selection */}
         <div className="flex-1 flex flex-col gap-8">
           {paymentGroups.map((group, i) => (
             <div key={i}>
@@ -192,9 +147,10 @@ export default function Checkout() {
           ))}
         </div>
 
-        <div className="w-full md:w-[481px] border border-gray-200 rounded-lg bg-white p-4">
+        {/* Order Summary */}
+        <div className="w-full md:w-[480px] border border-gray-200 rounded-lg bg-white p-4">
           {cart.length === 0 ? (
-            <p className="text-gray-500 text-sm">Your cart is empty.</p>
+            <p className="text-gray-500 text-sm">{t("cartEmpty")}</p>
           ) : (
             <>
               {cart.map((item, index) => (
@@ -221,20 +177,22 @@ export default function Checkout() {
 
               <div className="mt-4 border-t border-gray-200 pt-4 text-xl font-normal">
                 <div className="flex justify-between py-1 text-gray-500 mb-1 mt-6">
-                  <span>Subtotal</span>
-                  <span className="text-lg">₮{subtotal}</span>
+                  <span>{t("subtotal")}</span>
+                  <span className="text-lg">₮{price.subtotal}</span>
                 </div>
                 <div className="flex justify-between py-1 text-gray-500 mb-1">
-                  <span>Discount</span>
-                  <span className="text-red-500 text-lg ">-₮{discount}</span>
+                  <span>{t("discount")}</span>
+                  <span className="text-red-500 text-lg ">
+                    -₮{price.discount}
+                  </span>
                 </div>
                 <div className="flex justify-between py-1 text-gray-500 mb-1">
-                  <span>Delivery</span>
-                  <span className="text-lg">₮{delivery}</span>
+                  <span>{t("delivery")}</span>
+                  <span className="text-lg">₮{price.delivery}</span>
                 </div>
-                <div className="flex justify-between py-1 mb-5">
-                  <span>Total</span>
-                  <span className="text-green-600">₮{total}</span>
+                <div className="flex justify-between py-1 mb-5 font-semibold text-black">
+                  <span>{t("total")}</span>
+                  <span className="text-green-600">₮{price.total}</span>
                 </div>
               </div>
 
@@ -243,21 +201,19 @@ export default function Checkout() {
                   className="flex-1 bg-gray-100 rounded-md py-2 text-sm font-medium"
                   onClick={() => router.back()}
                 >
-                  Back
+                  {t("back")}
                 </button>
                 <button
-                  className="flex-1 bg-gray-300 rounded-md py-2 text-sm font-medium"
+                  className="flex-1 bg-black text-white rounded-md py-2 text-sm font-medium"
                   onClick={handlePay}
                 >
-                  Pay
+                  {t("pay")}
                 </button>
               </div>
 
               <ul className="mt-4 text-xs text-gray-500 list-disc list-inside">
-                <li>Please note that the item cannot be returned</li>
-                <li>
-                  You may resell your purchased ticket on the SECONDARY MARKET
-                </li>
+                <li>{t("itemCannotBeReturned")}</li>
+                <li>{t("secondaryMarket")}</li>
               </ul>
             </>
           )}

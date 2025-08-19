@@ -6,8 +6,11 @@ import Footer from "../../components/Footer";
 import Image from "next/image";
 import { X } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 export default function PaymentPage() {
+  const t = useTranslations("PaymentPage");
+
   const [timeLeft, setTimeLeft] = useState(10 * 60);
 
   useEffect(() => {
@@ -24,7 +27,6 @@ export default function PaymentPage() {
 
         cart.forEach(async (item: any) => {
           try {
-            // 1️⃣ Fetch the current stock first
             const res = await fetch(
               `http://localhost:3000/variant/${item.variantId}/stock`
             );
@@ -34,7 +36,6 @@ export default function PaymentPage() {
             const currentStock = data.stock ?? 0;
             const newStock = currentStock + item.quantity;
 
-            // 2️⃣ Restore stock
             await fetch(
               `http://localhost:3000/variant/${item.variantId}/stock`,
               {
@@ -72,16 +73,14 @@ export default function PaymentPage() {
             <X size={20} />
           </button>
 
-          <h2 className="text-lg font-semibold">Step 2</h2>
-          <h1 className="text-2xl font-bold mb-2">Payment</h1>
-          <p className="text-sm text-gray-600 mb-4">
-            Scan the QR code using any of your banking app to make a payment
-          </p>
+          <h2 className="text-lg font-semibold">{t("step")}</h2>
+          <h1 className="text-2xl font-bold mb-2">{t("payment")}</h1>
+          <p className="text-sm text-gray-600 mb-4">{t("instructions")}</p>
 
           <div className="bg-white rounded-lg p-2 shadow mb-4">
             <Image
               src="/icons/qr.png"
-              alt="QR Code"
+              alt={t("qrCodeAlt")}
               width={180}
               height={180}
               className="object-contain"
@@ -89,14 +88,15 @@ export default function PaymentPage() {
           </div>
 
           <p className="text-sm text-gray-600 mb-4">
-            Cancel order <br />
+            {t("cancelOrder")} <br />
             <span className="font-medium">
-              {minutes} min {seconds} sec
+              {minutes} {t("minutes")} {seconds} {t("seconds")}
             </span>
           </p>
+
           <Link href="/complete">
             <button className="bg-gradient-to-b from-gray-100 to-gray-300 rounded-full px-4 py-2 w-full font-medium shadow hover:from-gray-200 hover:to-gray-400">
-              Check the transaction
+              {t("checkTransaction")}
             </button>
           </Link>
         </div>

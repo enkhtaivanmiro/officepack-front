@@ -1,12 +1,15 @@
+import { useTranslations } from "next-intl";
 import { Facebook, Instagram, Youtube } from "lucide-react";
 
 export default function Footer() {
+  const t = useTranslations("Footer");
+
   return (
     <footer className="bg-black text-white">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center py-6 px-6 space-y-4 md:space-y-0 h-48">
         <p className="mt-16">© 2025 TEAM HUNS</p>
         <div className="mt-16">
-          <p className="text-end mb-3 font-bold text-xs">FOLLOW US</p>
+          <p className="text-end mb-3 font-bold text-xs">{t("followUs")}</p>
           <div className="flex space-x-4">
             <a href="https://www.facebook.com/TheHunsEsports/">
               <Facebook className="w-4 h-4" />

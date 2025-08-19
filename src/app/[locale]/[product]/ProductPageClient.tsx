@@ -5,6 +5,7 @@ import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import { CartItem } from "../../../atoms/cartAtom";
 import { useCart } from "../../../hooks/useCart";
+import { useTranslations } from "next-intl";
 
 type Product = {
   id: string;
@@ -41,6 +42,8 @@ export default function ProductPageClient({
   locale,
   productId,
 }: ProductPageClientProps) {
+  const t = useTranslations("ProductPage");
+
   const [product, setProduct] = useState<Product | null>(null);
   const [images, setImages] = useState<Image[]>([]);
   const [attributes, setAttributes] = useState<Attribute[]>([]);
@@ -59,6 +62,25 @@ export default function ProductPageClient({
 
   const colorAttr = attributes.find((a) => a.name.toLowerCase() === "color");
   const sizeAttr = attributes.find((a) => a.name.toLowerCase() === "size");
+
+  useEffect(() => {
+    const restoreExpiredOrders = async () => {
+      try {
+        const res = await fetch(
+          "http://localhost:3000/orders/restore-expired",
+          {
+            method: "POST",
+          }
+        );
+        const data = await res.json();
+        console.log("Restored expired orders:", data);
+      } catch (err) {
+        console.error("Failed to restore expired orders:", err);
+      }
+    };
+
+    restoreExpiredOrders();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -82,13 +104,13 @@ export default function ProductPageClient({
         setVariants(varRes);
       } catch (e) {
         console.error(e);
-        setError("Failed to load product data");
+        setError(t("failedLoad"));
       } finally {
         setLoading(false);
       }
     };
     fetchData();
-  }, [productId]);
+  }, [productId, t]);
 
   const availableColors = attributeValues
     .filter((av) => colorAttr && av.attribute_id === colorAttr.id)
@@ -153,7 +175,7 @@ export default function ProductPageClient({
 
   const handleAddToCart = () => {
     if (!currentVariant) {
-      alert("Please select a valid color and size combination");
+      alert(t("selectVariantAlert"));
       return;
     }
 
@@ -169,13 +191,13 @@ export default function ProductPageClient({
     };
 
     addToCart(item);
-    alert("Added to cart!");
+    alert(t("addToCart"));
   };
 
   if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center">
-        Loading...
+        {t("loading")}
       </div>
     );
 
@@ -217,7 +239,7 @@ export default function ProductPageClient({
               />
             ) : (
               <div className="w-full h-96 flex items-center justify-center text-gray-600">
-                No images available
+                {t("noImages")}
               </div>
             )}
           </div>
@@ -244,7 +266,9 @@ export default function ProductPageClient({
 
           {colorAttr && (
             <div className="mb-6">
-              <p className="font-extralight mb-4 text-gray-600">Select Color</p>
+              <p className="font-extralight mb-4 text-gray-600">
+                {t("selectColor")}
+              </p>
               <div className="flex gap-4 flex-wrap">
                 {availableColors.map((val) => (
                   <button
@@ -264,7 +288,9 @@ export default function ProductPageClient({
 
           {sizeAttr && (
             <div className="mb-6">
-              <p className="font-extralight mb-4 text-gray-600">Choose Size</p>
+              <p className="font-extralight mb-4 text-gray-600">
+                {t("chooseSize")}
+              </p>
               <div className="flex gap-4 flex-wrap">
                 {availableSizes.map((val) => (
                   <button
@@ -305,7 +331,7 @@ export default function ProductPageClient({
               onClick={handleAddToCart}
               className="ml-auto sm:ml-0 bg-black text-white px-6 py-3 rounded-full md:w-[400px] sm:w-auto"
             >
-              Add to Cart
+              {t("addToCart")}
             </button>
           </div>
         </div>
