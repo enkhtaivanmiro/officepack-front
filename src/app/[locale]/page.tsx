@@ -22,6 +22,13 @@ type Image = {
   product_id: string;
 };
 
+type Variant = {
+  id: string;
+  product_id: string;
+  price: number;
+  selling_price: number | null;
+};
+
 export default function Page() {
   const pathname = usePathname();
   const locale = pathname?.split("/")[1] ?? "en";
@@ -30,6 +37,7 @@ export default function Page() {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [images, setImages] = useState<Image[]>([]);
+  const [variants, setVariants] = useState<Record<string, Variant[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,6 +57,18 @@ export default function Page() {
 
         setProducts(productsData);
         setImages(imagesData);
+
+        const variantsMap: Record<string, Variant[]> = {};
+        await Promise.all(
+          productsData.map(async (p) => {
+            const res = await fetch(
+              `http://localhost:3000/product/${p.id}/variants`
+            );
+            const data: Variant[] = await res.json();
+            variantsMap[p.id] = data;
+          })
+        );
+        setVariants(variantsMap);
       } catch (err: any) {
         setError(err.message || "Unknown error");
       } finally {
@@ -85,12 +105,11 @@ export default function Page() {
       <main className="flex-grow max-w-7xl mx-auto px-6 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
         {products.map((p) => {
           const productImage = images.find((img) => img.product_id === p.id);
-          const price = p.price ?? 0;
-          const sellingPrice = p.selling_price ?? price;
-          const discount =
-            price && sellingPrice && price > sellingPrice
-              ? Math.round(((price - sellingPrice) / price) * 100)
-              : undefined;
+          const productVariants = variants[p.id] ?? [];
+
+          const prices = productVariants.map((v) => v.selling_price ?? v.price);
+          const minPrice = Math.min(...prices);
+          const maxPrice = Math.max(...prices);
 
           return (
             <Link href={`/${locale}/${p.id}`} key={p.id} className="block">
@@ -98,9 +117,11 @@ export default function Page() {
                 id={p.id}
                 name={p.title}
                 image={productImage?.url ?? "/icons/tshirt.png"}
-                price={sellingPrice}
-                oldPrice={discount ? price : undefined}
-                discount={discount}
+                price={
+                  minPrice === maxPrice
+                    ? minPrice
+                    : { min: minPrice, max: maxPrice }
+                }
               />
             </Link>
           );

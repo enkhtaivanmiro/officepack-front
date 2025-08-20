@@ -6,19 +6,18 @@ import Footer from "../../components/Footer";
 import Image from "next/image";
 import { useCart } from "../../../hooks/useCart";
 import { useSetAtom, useAtomValue } from "jotai";
-import { priceAtom } from "../../../atoms/priceAtom";
+import { orderParamsAtom } from "../../../atoms/orderParamsAtom";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 export default function Checkout() {
   const t = useTranslations("Checkout");
   const { cart, clearCart } = useCart();
-  const setPrice = useSetAtom(priceAtom);
-  const price = useAtomValue(priceAtom);
+  const setPrice = useSetAtom(orderParamsAtom);
+  const price = useAtomValue(orderParamsAtom);
   const router = useRouter();
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
 
-  // Restore expired orders on mount
   useEffect(() => {
     fetch("http://localhost:3000/orders/restore-expired", { method: "POST" })
       .then((res) =>
@@ -28,7 +27,6 @@ export default function Checkout() {
       .catch((err) => console.error("Error restoring expired orders:", err));
   }, []);
 
-  // Load cart totals
   useEffect(() => {
     const storedTotals = localStorage.getItem("cartTotals");
     if (storedTotals) {
@@ -36,9 +34,9 @@ export default function Checkout() {
     } else {
       const subtotal = cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
       const discount = subtotal * 0.2;
-      const delivery = 15000;
-      const total = subtotal - discount + delivery;
-      setPrice({ subtotal, discount, delivery, total });
+      const deliveryFee = 15000;
+      const total = subtotal - discount + deliveryFee;
+      setPrice({ subtotal, discount, deliveryFee, total });
     }
   }, [cart, setPrice]);
 
@@ -116,7 +114,6 @@ export default function Checkout() {
       <Header />
 
       <main className="flex-1 flex flex-col md:flex-row gap-8 max-w-6xl w-full mx-auto px-4 py-8 font-satoshi">
-        {/* Payment Selection */}
         <div className="flex-1 flex flex-col gap-8">
           {paymentGroups.map((group, i) => (
             <div key={i}>
@@ -147,7 +144,6 @@ export default function Checkout() {
           ))}
         </div>
 
-        {/* Order Summary */}
         <div className="w-full md:w-[480px] border border-gray-200 rounded-lg bg-white p-4">
           {cart.length === 0 ? (
             <p className="text-gray-500 text-sm">{t("cartEmpty")}</p>
@@ -188,7 +184,7 @@ export default function Checkout() {
                 </div>
                 <div className="flex justify-between py-1 text-gray-500 mb-1">
                   <span>{t("delivery")}</span>
-                  <span className="text-lg">₮{price.delivery}</span>
+                  <span className="text-lg">₮{price.deliveryFee}</span>
                 </div>
                 <div className="flex justify-between py-1 mb-5 font-semibold text-black">
                   <span>{t("total")}</span>

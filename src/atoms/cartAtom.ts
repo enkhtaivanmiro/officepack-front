@@ -1,10 +1,11 @@
+"use client";
 import { atom } from "jotai";
 
 export type CartItem = {
   id: string;
   name: string;
-  color: string | null;
-  size: string | null;
+  color?: string | null;
+  size?: string | null;
   price: number;
   quantity: number;
   image: string;
@@ -18,7 +19,7 @@ const getInitialCart = (): CartItem[] => {
       try {
         return JSON.parse(saved) as CartItem[];
       } catch (e) {
-        console.error("Failed to parse cart from localStorage", e);
+        console.error("Failed to parse cart", e);
       }
     }
   }
@@ -29,9 +30,9 @@ const baseCartAtom = atom<CartItem[]>(getInitialCart());
 
 export type CartAction =
   | { type: "add"; item: CartItem }
-  | { type: "remove"; variantId?: string; id: string }
-  | { type: "increment"; variantId?: string; id: string }
-  | { type: "decrement"; variantId?: string; id: string }
+  | { type: "remove"; id: string; variantId?: string }
+  | { type: "increment"; id: string; variantId?: string }
+  | { type: "decrement"; id: string; variantId?: string }
   | { type: "clear" };
 
 export const cartAtom = atom(
@@ -43,38 +44,30 @@ export const cartAtom = atom(
     switch (action.type) {
       case "add": {
         const newItem = action.item;
-        const existingIndex = prev.findIndex(
+        const idx = prev.findIndex(
           (i) => i.id === newItem.id && i.variantId === newItem.variantId
         );
-
         updated =
-          existingIndex > -1
-            ? prev.map((i, idx) =>
-                idx === existingIndex
-                  ? { ...i, quantity: i.quantity + newItem.quantity }
-                  : i
+          idx > -1
+            ? prev.map((i, iidx) =>
+                iidx === idx ? { ...i, quantity: i.quantity + newItem.quantity } : i
               )
             : [...prev, newItem];
         break;
       }
-
-      case "remove": {
+      case "remove":
         updated = prev.filter(
           (i) => !(i.id === action.id && i.variantId === action.variantId)
         );
         break;
-      }
-
-      case "increment": {
+      case "increment":
         updated = prev.map((i) =>
           i.id === action.id && i.variantId === action.variantId
             ? { ...i, quantity: i.quantity + 1 }
             : i
         );
         break;
-      }
-
-      case "decrement": {
+      case "decrement":
         updated = prev
           .map((i) =>
             i.id === action.id && i.variantId === action.variantId
@@ -83,18 +76,20 @@ export const cartAtom = atom(
           )
           .filter((i) => i.quantity > 0);
         break;
-      }
-
-      case "clear": {
+      case "clear":
         updated = [];
         break;
-      }
     }
 
     set(baseCartAtom, updated);
-
-    if (typeof window !== "undefined") {
-      localStorage.setItem("cart", JSON.stringify(updated));
-    }
+    if (typeof window !== "undefined") localStorage.setItem("cart", JSON.stringify(updated));
   }
 );
+
+export const orderParamsAtom = atom({
+  subtotal: 0,
+  discount: 0,
+  deliveryFee: 15000,
+  total: 0,
+  promoCode: "",
+});

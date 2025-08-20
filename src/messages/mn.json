@@ -56,7 +56,9 @@
     "total": "Нийт дүн",
     "promoPlaceholder": "Хөнгөлөлтийн код оруулах",
     "apply": "Хэрэглэх",
-    "checkout": "Төлбөр төлөх →"
+    "checkout": "Төлбөр төлөх →",
+    "remove": "Устгах",
+    "promoDiscount": "Хөнгөлөлтийн купон"
   },
   "Checkout": {
     "subtotal": "Нийт",

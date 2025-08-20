@@ -3,18 +3,14 @@
 import React, { useState, useEffect } from "react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
+import OrderSummary from "../../components/OrderSummary";
 import { FaTag } from "react-icons/fa";
 import { useRouter } from "next/navigation";
-import { useAtomValue } from "jotai";
-import { orderParamsAtom } from "../../../atoms/orderParamsAtom";
-import useOrderParams from "../../../hooks/useOrderParams";
 import { useTranslations } from "next-intl";
 
 export default function AddressPage() {
   const t = useTranslations("AddressPage");
   const router = useRouter();
-
-  useOrderParams();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -24,8 +20,12 @@ export default function AddressPage() {
     notes: "",
   });
 
-  const orderParams = useAtomValue(orderParamsAtom);
-  const { subtotal, discount, deliveryFee, total } = orderParams;
+  const [totals, setTotals] = useState({
+    subtotal: 0,
+    discount: 0,
+    deliveryFee: 0,
+    total: 0,
+  });
 
   useEffect(() => {
     const savedAddress = localStorage.getItem("address");
@@ -34,6 +34,29 @@ export default function AddressPage() {
         setFormData(JSON.parse(savedAddress));
       } catch (err) {
         console.error("Failed to parse address from localStorage", err);
+      }
+    }
+
+    const savedTotals = localStorage.getItem("cartTotals");
+    if (savedTotals) {
+      try {
+        setTotals(JSON.parse(savedTotals));
+      } catch (err) {
+        console.error("Failed to parse cartTotals from localStorage", err);
+      }
+    }
+
+    const promoData = localStorage.getItem("promoCodeData");
+    if (promoData) {
+      try {
+        const promo = JSON.parse(promoData);
+        setTotals((prev) => ({
+          ...prev,
+          discount: prev.discount,
+          promoCode: promo.name,
+        }));
+      } catch (err) {
+        console.error("Failed to parse promo data", err);
       }
     }
   }, []);
@@ -55,7 +78,6 @@ export default function AddressPage() {
       <Header />
 
       <main className="max-w-7xl mx-auto w-full px-6 py-12 flex flex-col md:flex-row gap-8 flex-grow font-satoshi">
-        {/* Address Form */}
         <div className="md:w-2/3 space-y-4">
           <div className="border border-gray-200 rounded-xl bg-white p-6">
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -143,44 +165,8 @@ export default function AddressPage() {
           </div>
         </div>
 
-        {/* Order Summary */}
-        <div className="md:w-1/3 bg-white rounded-2xl shadow border p-6 h-fit border-gray-100">
-          <h2 className="text-xl font-bold mb-6 text-black">
-            {t("orderSummary")}
-          </h2>
-          <div className="flex justify-between text-gray-700 mb-2">
-            <span>{t("subtotal")}</span>
-            <span className="font-bold text-black">₮{subtotal}</span>
-          </div>
-          <div className="flex justify-between text-gray-700 mb-2">
-            <span>{t("discount")} (-20%)</span>
-            <span className="text-red-500 font-bold">-₮{discount}</span>
-          </div>
-          <div className="flex justify-between text-gray-700 mb-4">
-            <span>{t("deliveryFee")}</span>
-            <span className="font-bold text-black">₮{deliveryFee}</span>
-          </div>
-          <div className="flex justify-between font-bold text-lg border-t pt-4 mb-6 text-black">
-            <span>{t("total")}</span>
-            <span className="text-black">₮{total}</span>
-          </div>
-
-          <div className="flex mb-4">
-            <div className="flex items-center bg-gray-100 rounded-full px-4 py-2 flex-grow">
-              <FaTag className="text-gray-400 mr-2" />
-              <input
-                type="text"
-                placeholder={t("promoCode")}
-                className="flex-grow bg-transparent focus:outline-none font-extralight text-gray-600"
-              />
-            </div>
-            <button className="bg-black rounded-full px-4 py-2 text-white h-12 text-base ml-3">
-              {t("apply")}
-            </button>
-          </div>
-        </div>
+        <OrderSummary showCheckout={false} />
       </main>
-
       <Footer />
     </div>
   );

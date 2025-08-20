@@ -211,7 +211,7 @@ export default function ProductPageClient({
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="mt-8 max-w-7xl mx-auto p-6 flex flex-col md:flex-row gap-10 font-satoshi">
+      <main className="flex-1 mt-8 max-w-7xl mx-auto p-6 flex flex-col md:flex-row gap-10 font-satoshi">
         <div className="flex flex-col md:flex-row gap-4 md:gap-6 w-full">
           <div className="flex flex-row md:flex-col gap-2 md:gap-4 w-full md:w-auto overflow-x-auto">
             {images.map((img, idx) => (

@@ -1,10 +1,10 @@
 {
   "Header": {
-    "shop": "Shop",
-    "team": "Team",
-    "match": "Match",
-    "about": "About",
-    "achievement": "Achievements",
+    "shop": "SHOP",
+    "team": "TEAM",
+    "match": "MATCH",
+    "about": "ABOUT",
+    "achievement": "ACHIEVEMENT",
     "english": "English",
     "mongolian": "Mongolian"
   },
@@ -56,7 +56,9 @@
     "total": "Total",
     "promoPlaceholder": "Add promo code",
     "apply": "Apply",
-    "checkout": "Go to Checkout →"
+    "checkout": "Go to Checkout →",
+    "remove": "Remove",
+    "promoDiscount": "Promo Discount"
   },
     "Checkout": {
     "subtotal": "Subtotal",

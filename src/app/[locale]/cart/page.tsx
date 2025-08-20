@@ -1,32 +1,56 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
-import { Trash2 } from "lucide-react";
-import { FaTag } from "react-icons/fa";
-import { useRouter } from "next/navigation";
+import OrderSummary from "../../components/OrderSummary";
 import { useCart } from "../../../hooks/useCart";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { Trash2 } from "lucide-react";
+import { useSetAtom } from "jotai";
+import { orderParamsAtom } from "../../../atoms/orderParamsAtom";
 
 export default function CartPage() {
   const { cart, removeFromCart, increaseQuantity, decreaseQuantity } =
     useCart();
   const router = useRouter();
-  const [promoCode, setPromoCode] = useState("");
   const t = useTranslations("Cart");
+  const setOrderParams = useSetAtom(orderParamsAtom);
 
-  // Calculations
-  const subtotal = cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
-  const discount = subtotal * 0.2; // test value
-  const deliveryFee = 15000; // test value
-  const total = subtotal - discount + deliveryFee;
+  useEffect(() => {
+    const subtotal = cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
-  const handleCheckout = () => {
+    // default delivery fee
+    const deliveryFee = 15000;
+
+    // check if promo is applied in localStorage
+    const promoData = localStorage.getItem("promoCodeData");
+    let discount = 0;
+    if (promoData) {
+      try {
+        const promo = JSON.parse(promoData);
+        if (promo.discount_type === "percentage")
+          discount = subtotal * (promo.discount_value / 100);
+        else discount = promo.discount_value;
+      } catch (err) {
+        console.error("Invalid promo data", err);
+        discount = 0;
+      }
+    }
+
+    const total = subtotal - discount + deliveryFee;
+
+    setOrderParams({ subtotal, discount, deliveryFee, total });
+
+    // optional: persist to localStorage
     localStorage.setItem(
       "cartTotals",
       JSON.stringify({ subtotal, discount, deliveryFee, total })
     );
+  }, [cart, setOrderParams]);
+
+  const handleCheckout = () => {
     router.push("/address");
   };
 
@@ -35,7 +59,6 @@ export default function CartPage() {
       <Header />
 
       <main className="max-w-7xl mx-auto w-full px-6 py-12 flex flex-col md:flex-row gap-8 flex-grow font-satoshi">
-        {/* Cart Items */}
         <div className="md:w-2/3 space-y-4">
           {cart.length === 0 ? (
             <p className="text-gray-500 text-lg">{t("empty")}</p>
@@ -45,7 +68,6 @@ export default function CartPage() {
                 key={`${item.id}-${item.color}-${item.size}-${index}`}
                 className="flex items-center justify-between bg-white rounded-2xl shadow border border-gray-100 px-4 py-4"
               >
-                {/* Product Info */}
                 <div className="flex items-center gap-4">
                   <img
                     src={item.image}
@@ -66,7 +88,6 @@ export default function CartPage() {
                   </div>
                 </div>
 
-                {/* Actions */}
                 <div className="flex flex-col justify-between items-end h-32">
                   <button
                     onClick={() => removeFromCart(item.id, item.variantId)}
@@ -100,54 +121,7 @@ export default function CartPage() {
           )}
         </div>
 
-        {/* Order Summary */}
-        <div className="md:w-1/3 bg-white rounded-2xl shadow border p-6 h-fit border-gray-100">
-          <h2 className="text-xl font-bold mb-6 text-black">
-            {t("orderSummary")}
-          </h2>
-          <div className="flex justify-between text-gray-700 mb-2">
-            <span>{t("subtotal")}</span>
-            <span className="font-bold text-black">₮{subtotal}</span>
-          </div>
-          <div className="flex justify-between text-gray-700 mb-2">
-            <span>{t("discount")}</span>
-            <span className="text-red-500 font-bold">-₮{discount}</span>
-          </div>
-          <div className="flex justify-between text-gray-700 mb-4">
-            <span>{t("deliveryFee")}</span>
-            <span className="font-bold text-black">₮{deliveryFee}</span>
-          </div>
-          <div className="flex justify-between font-bold text-lg border-t pt-4 mb-6 text-black">
-            <span>{t("total")}</span>
-            <span className="text-black">₮{total}</span>
-          </div>
-
-          {/* Promo Code Input */}
-          <div className="flex mb-4">
-            <div className="flex items-center bg-gray-100 rounded-full px-4 py-2 flex-grow">
-              <FaTag className="text-gray-400 mr-2" />
-              <input
-                type="text"
-                value={promoCode}
-                onChange={(e) => setPromoCode(e.target.value)}
-                placeholder={t("promoPlaceholder")}
-                className="flex-grow bg-transparent focus:outline-none font-extralight text-gray-600"
-              />
-            </div>
-            <button className="bg-black rounded-full px-4 py-2 text-white h-12 w-32 text-base ml-3">
-              {t("apply")}
-            </button>
-          </div>
-
-          {/* Checkout Button */}
-          <button
-            type="button"
-            onClick={handleCheckout}
-            className="w-full bg-black text-white text-base py-3 rounded-full hover:bg-gray-800 flex items-center justify-center gap-3"
-          >
-            {t("checkout")}
-          </button>
-        </div>
+        <OrderSummary onCheckout={handleCheckout} />
       </main>
 
       <Footer />
