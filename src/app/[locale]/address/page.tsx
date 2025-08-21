@@ -4,13 +4,15 @@ import React, { useState, useEffect } from "react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import OrderSummary from "../../components/OrderSummary";
-import { FaTag } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useSetAtom } from "jotai";
+import { orderParamsAtom } from "../../../atoms/orderParamsAtom";
 
 export default function AddressPage() {
   const t = useTranslations("AddressPage");
   const router = useRouter();
+  const setOrderParams = useSetAtom(orderParamsAtom);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -18,13 +20,6 @@ export default function AddressPage() {
     email: "",
     address: "",
     notes: "",
-  });
-
-  const [totals, setTotals] = useState({
-    subtotal: 0,
-    discount: 0,
-    deliveryFee: 0,
-    total: 0,
   });
 
   useEffect(() => {
@@ -40,26 +35,13 @@ export default function AddressPage() {
     const savedTotals = localStorage.getItem("cartTotals");
     if (savedTotals) {
       try {
-        setTotals(JSON.parse(savedTotals));
+        const totals = JSON.parse(savedTotals);
+        setOrderParams(totals);
       } catch (err) {
         console.error("Failed to parse cartTotals from localStorage", err);
       }
     }
-
-    const promoData = localStorage.getItem("promoCodeData");
-    if (promoData) {
-      try {
-        const promo = JSON.parse(promoData);
-        setTotals((prev) => ({
-          ...prev,
-          discount: prev.discount,
-          promoCode: promo.name,
-        }));
-      } catch (err) {
-        console.error("Failed to parse promo data", err);
-      }
-    }
-  }, []);
+  }, [setOrderParams]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -165,7 +147,7 @@ export default function AddressPage() {
           </div>
         </div>
 
-        <OrderSummary showCheckout={false} />
+        <OrderSummary showCheckout={false} readonlyPromo={true} />
       </main>
       <Footer />
     </div>

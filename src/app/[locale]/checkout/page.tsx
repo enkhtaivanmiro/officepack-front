@@ -17,6 +17,7 @@ export default function Checkout() {
   const price = useAtomValue(orderParamsAtom);
   const router = useRouter();
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetch("http://localhost:3000/orders/restore-expired", { method: "POST" })
@@ -28,16 +29,36 @@ export default function Checkout() {
   }, []);
 
   useEffect(() => {
-    const storedTotals = localStorage.getItem("cartTotals");
-    if (storedTotals) {
-      setPrice(JSON.parse(storedTotals));
-    } else {
-      const subtotal = cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
-      const discount = subtotal * 0.2;
-      const deliveryFee = 15000;
-      const total = subtotal - discount + deliveryFee;
-      setPrice({ subtotal, discount, deliveryFee, total });
-    }
+    if (cart.length === 0) return;
+
+    const items = cart.map((item) => ({
+      variant_id: item.variantId,
+      quantity: item.quantity,
+    }));
+
+    setLoading(true);
+    fetch("http://localhost:3000/orders/preview", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        items,
+        promo_id: localStorage.getItem("promoId") || null,
+      }),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch order preview");
+        return res.json();
+      })
+      .then((data) => {
+        setPrice({
+          subtotal: data.subtotal,
+          discount: data.discount,
+          deliveryFee: data.delivery_fee,
+          total: data.total,
+        });
+      })
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
   }, [cart, setPrice]);
 
   const handlePay = async () => {
@@ -53,7 +74,11 @@ export default function Checkout() {
       quantity: item.quantity,
     }));
 
+    const promoId = localStorage.getItem("promoId");
+
     try {
+      setLoading(true);
+
       const response = await fetch("http://localhost:3000/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -64,6 +89,8 @@ export default function Checkout() {
           address: parsedAddress.address,
           status: "pending",
           items,
+          promo_id: promoId || null,
+          payment_method: selectedPayment,
         }),
       });
 
@@ -72,14 +99,31 @@ export default function Checkout() {
       const result = await response.json();
       console.log("Order created successfully:", result);
 
+      if (promoId) {
+        try {
+          const promoResponse = await fetch(
+            `http://localhost:3000/promos/${promoId}/use`,
+            { method: "PATCH" }
+          );
+          if (!promoResponse.ok)
+            throw new Error("Failed to increment promo usage");
+          console.log("Promo usage updated successfully");
+        } catch (promoErr) {
+          console.error("Error updating promo usage:", promoErr);
+        }
+      }
+
       clearCart();
       localStorage.removeItem("cart");
-      localStorage.removeItem("cartTotals");
+      localStorage.removeItem("promoCode");
+      localStorage.removeItem("promoId");
 
       router.push("/payment");
     } catch (err) {
       console.error(err);
       alert(t("orderCreationError"));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -171,26 +215,32 @@ export default function Checkout() {
                 </div>
               ))}
 
-              <div className="mt-4 border-t border-gray-200 pt-4 text-xl font-normal">
-                <div className="flex justify-between py-1 text-gray-500 mb-1 mt-6">
-                  <span>{t("subtotal")}</span>
-                  <span className="text-lg">₮{price.subtotal}</span>
+              {loading ? (
+                <p className="text-center text-gray-500 my-6">
+                  {t("loadingTotals")}
+                </p>
+              ) : (
+                <div className="mt-4 border-t border-gray-200 pt-4 text-xl font-normal">
+                  <div className="flex justify-between py-1 text-gray-500 mb-1 mt-6">
+                    <span>{t("subtotal")}</span>
+                    <span className="text-lg">₮{price.subtotal}</span>
+                  </div>
+                  <div className="flex justify-between py-1 text-gray-500 mb-1">
+                    <span>{t("discount")}</span>
+                    <span className="text-red-500 text-lg ">
+                      -₮{price.discount}
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-1 text-gray-500 mb-1">
+                    <span>{t("delivery")}</span>
+                    <span className="text-lg">₮{price.deliveryFee}</span>
+                  </div>
+                  <div className="flex justify-between py-1 mb-5 font-semibold text-black">
+                    <span>{t("total")}</span>
+                    <span className="text-green-600">₮{price.total}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between py-1 text-gray-500 mb-1">
-                  <span>{t("discount")}</span>
-                  <span className="text-red-500 text-lg ">
-                    -₮{price.discount}
-                  </span>
-                </div>
-                <div className="flex justify-between py-1 text-gray-500 mb-1">
-                  <span>{t("delivery")}</span>
-                  <span className="text-lg">₮{price.deliveryFee}</span>
-                </div>
-                <div className="flex justify-between py-1 mb-5 font-semibold text-black">
-                  <span>{t("total")}</span>
-                  <span className="text-green-600">₮{price.total}</span>
-                </div>
-              </div>
+              )}
 
               <div className="flex gap-3 mt-4">
                 <button
@@ -202,8 +252,9 @@ export default function Checkout() {
                 <button
                   className="flex-1 bg-black text-white rounded-md py-2 text-sm font-medium"
                   onClick={handlePay}
+                  disabled={loading}
                 >
-                  {t("pay")}
+                  {loading ? t("processing") : t("pay")}
                 </button>
               </div>
 

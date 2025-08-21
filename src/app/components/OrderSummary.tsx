@@ -10,12 +10,14 @@ type Props = {
   onCheckout?: () => void;
   checkoutLabel?: string;
   showCheckout?: boolean;
+  readonlyPromo?: boolean;
 };
 
 export default function OrderSummary({
   onCheckout,
   checkoutLabel,
   showCheckout = true,
+  readonlyPromo = false,
 }: Props) {
   const t = useTranslations("Cart");
   const { subtotal, discount, deliveryFee, total } =
@@ -32,18 +34,21 @@ export default function OrderSummary({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Reset discount if promo removed
+    if (readonlyPromo) return;
     if (!appliedPromo) {
-      setPrice({
+      const newTotals = {
         subtotal,
         discount: 0,
         deliveryFee,
         total: subtotal + deliveryFee,
-      });
+      };
+      setPrice(newTotals);
+      localStorage.setItem("cartTotals", JSON.stringify(newTotals));
     }
-  }, [appliedPromo, subtotal, deliveryFee, setPrice, total]);
+  }, [appliedPromo, subtotal, deliveryFee, setPrice, readonlyPromo]);
 
   const handleApply = async () => {
+    if (readonlyPromo) return;
     setError(null);
     if (!promoCode) return;
 
@@ -59,34 +64,53 @@ export default function OrderSummary({
         const err = await res.json();
         throw new Error(err.message || "Invalid promo code");
       }
+
       const promo = await res.json();
       setAppliedPromo(promo);
+
       localStorage.setItem("promoCode", promoCode);
+      localStorage.setItem("promoId", promo.id);
 
-      // Calculate discount
       let discountAmount = 0;
-      if (promo.discount_type === "percentage")
-        discountAmount = subtotal * (promo.discount_value / 100);
-      else discountAmount = promo.discount_value;
+      if (promo.discount_type === "percentage") {
+        discountAmount = Math.floor(subtotal * (promo.discount_value / 100));
+      } else {
+        discountAmount = promo.discount_value;
+      }
 
-      setPrice({
+      const newTotals = {
         subtotal,
         discount: discountAmount,
         deliveryFee,
-        total: subtotal - discountAmount + deliveryFee,
-      });
+        total: Math.max(0, subtotal - discountAmount + deliveryFee),
+      };
+
+      setPrice(newTotals);
+      localStorage.setItem("cartTotals", JSON.stringify(newTotals));
     } catch (err: any) {
       setError(err.message);
       setAppliedPromo(null);
       localStorage.removeItem("promoCode");
+      localStorage.removeItem("promoId");
     }
   };
 
   const handleRemove = () => {
+    if (readonlyPromo) return;
     setAppliedPromo(null);
     setPromoCode("");
     setError(null);
     localStorage.removeItem("promoCode");
+    localStorage.removeItem("promoId");
+
+    const newTotals = {
+      subtotal,
+      discount: 0,
+      deliveryFee,
+      total: subtotal + deliveryFee,
+    };
+    setPrice(newTotals);
+    localStorage.setItem("cartTotals", JSON.stringify(newTotals));
   };
 
   return (
@@ -122,6 +146,7 @@ export default function OrderSummary({
             onChange={(e) => setPromoCode(e.target.value)}
             placeholder={t("promoPlaceholder")}
             className="flex-grow bg-transparent focus:outline-none font-extralight text-gray-600"
+            readOnly={readonlyPromo}
           />
         </div>
         {!appliedPromo ? (
@@ -129,6 +154,7 @@ export default function OrderSummary({
             type="button"
             onClick={handleApply}
             className="bg-black rounded-full px-4 py-2 text-white h-12 w-32 text-base ml-3"
+            disabled={readonlyPromo}
           >
             {t("apply")}
           </button>
@@ -137,6 +163,7 @@ export default function OrderSummary({
             type="button"
             onClick={handleRemove}
             className="bg-red-500 rounded-full px-4 py-2 text-white h-12 w-32 text-base ml-3"
+            disabled={readonlyPromo}
           >
             {t("remove")}
           </button>

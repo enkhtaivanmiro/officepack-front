@@ -21,29 +21,30 @@ export default function CartPage() {
   useEffect(() => {
     const subtotal = cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
-    // default delivery fee
     const deliveryFee = 15000;
 
-    // check if promo is applied in localStorage
     const promoData = localStorage.getItem("promoCodeData");
     let discount = 0;
+
     if (promoData) {
       try {
         const promo = JSON.parse(promoData);
-        if (promo.discount_type === "percentage")
-          discount = subtotal * (promo.discount_value / 100);
-        else discount = promo.discount_value;
+
+        if (promo?.discount_type === "percentage") {
+          discount = Math.floor(subtotal * (promo.discount_value / 100));
+        } else if (promo?.discount_type === "fixed") {
+          discount = promo.discount_value;
+        }
       } catch (err) {
         console.error("Invalid promo data", err);
         discount = 0;
       }
     }
 
-    const total = subtotal - discount + deliveryFee;
+    const total = Math.max(0, subtotal - discount + deliveryFee);
 
     setOrderParams({ subtotal, discount, deliveryFee, total });
 
-    // optional: persist to localStorage
     localStorage.setItem(
       "cartTotals",
       JSON.stringify({ subtotal, discount, deliveryFee, total })
