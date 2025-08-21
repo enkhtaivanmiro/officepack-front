@@ -76,7 +76,9 @@
     "payByCard": "Pay by Card",
     "creditDebitCard": "Credit/Debit Card",
     "payByEWallet": "Pay by E-Wallet",
-    "payByInstallments": "Pay by Credit or Installments"
+    "payByInstallments": "Pay by Credit or Installments",
+    "loadingTotals": "Loading totals",
+    "processing": "Processing"
   },
     "OrderConfirmation": {
     "orderNumber": "Order Number",

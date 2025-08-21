@@ -76,7 +76,9 @@
     "payByCard": "Картын төлбөр",
     "creditDebitCard": "Кредит/Дебит карт",
     "payByEWallet": "Цахим түрийвчээр төлөх",
-    "payByInstallments": "Кредит эсвэл хэсэгчилсэн төлбөр"
+    "payByInstallments": "Кредит эсвэл хэсэгчилсэн төлбөр",
+    "loadingTotals": "Уншиж байна",
+    "processing": "Уншиж байна"
   },
   "OrderConfirmation": {
     "orderNumber": "Захиалгын дугаар",

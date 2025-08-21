@@ -45,11 +45,25 @@ export default function Checkout() {
         promo_id: localStorage.getItem("promoId") || null,
       }),
     })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch order preview");
-        return res.json();
+      .then(async (res) => {
+        const data = await res.json();
+
+        if (!res.ok) {
+          if (
+            data.message &&
+            data.message.toString().includes("Not enough stock")
+          ) {
+            alert(data.message);
+            router.push("/cart");
+            return;
+          }
+          throw new Error(data.message || "Failed to fetch order preview");
+        }
+
+        return data;
       })
       .then((data) => {
+        if (!data) return;
         setPrice({
           subtotal: data.subtotal,
           discount: data.discount,
@@ -94,24 +108,24 @@ export default function Checkout() {
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to create order");
-
       const result = await response.json();
-      console.log("Order created successfully:", result);
 
-      if (promoId) {
-        try {
-          const promoResponse = await fetch(
-            `http://localhost:3000/promos/${promoId}/use`,
-            { method: "PATCH" }
-          );
-          if (!promoResponse.ok)
-            throw new Error("Failed to increment promo usage");
-          console.log("Promo usage updated successfully");
-        } catch (promoErr) {
-          console.error("Error updating promo usage:", promoErr);
+      if (!response.ok) {
+        // Check for "not enough stock" message
+        if (
+          result.message &&
+          typeof result.message === "string" &&
+          result.message.includes("Not enough stock")
+        ) {
+          alert(result.message);
+          router.push("/cart");
+          return;
         }
+
+        throw new Error(result.message || "Order creation failed");
       }
+
+      console.log("Order created successfully:", result);
 
       clearCart();
       localStorage.removeItem("cart");
@@ -119,9 +133,9 @@ export default function Checkout() {
       localStorage.removeItem("promoId");
 
       router.push("/payment");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert(t("orderCreationError"));
+      alert(err.message || t("orderCreationError"));
     } finally {
       setLoading(false);
     }
