@@ -73,7 +73,6 @@ export default function ProductPageClient({
           }
         );
         const data = await res.json();
-        console.log("Restored expired orders:", data);
       } catch (err) {
         console.error("Failed to restore expired orders:", err);
       }
