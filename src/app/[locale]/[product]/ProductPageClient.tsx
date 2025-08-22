@@ -84,11 +84,10 @@ export default function ProductPageClient({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [prodRes, imgRes, attrRes, valRes, varRes] = await Promise.all([
+        const [prodRes, attrRes, valRes, varRes] = await Promise.all([
           fetch(`http://localhost:3000/product/${productId}`).then((r) =>
             r.json()
           ),
-          fetch(`http://localhost:3000/images`).then((r) => r.json()),
           fetch(`http://localhost:3000/attribute`).then((r) => r.json()),
           fetch(`http://localhost:3000/attribute_value`).then((r) => r.json()),
           fetch(`http://localhost:3000/product/${productId}/variants`).then(
@@ -97,7 +96,10 @@ export default function ProductPageClient({
         ]);
 
         setProduct(prodRes);
-        setImages(imgRes.filter((i: Image) => i.product_id === productId));
+        const imgRes = await fetch(
+          `http://localhost:3000/images/product/${productId}`
+        ).then((r) => r.json());
+        setImages(imgRes);
         setAttributes(attrRes);
         setAttributeValues(valRes);
         setVariants(varRes);
