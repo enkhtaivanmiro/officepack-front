@@ -86,7 +86,6 @@ export default function Checkout() {
     try {
       setLoading(true);
 
-      // 1️⃣ Create Order
       const orderResponse = await fetch("http://localhost:3000/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -115,7 +114,6 @@ export default function Checkout() {
       const orderId = orderResult.id;
       if (!orderId) throw new Error("Order ID missing");
 
-      // 2️⃣ Create Payment
       const paymentResponse = await fetch(
         "http://localhost:3000/payment/create",
         {
@@ -136,10 +134,8 @@ export default function Checkout() {
       const paymentId = paymentResult._id;
       if (!paymentId) throw new Error("Payment ID missing");
 
-      // 3️⃣ Redirect with valid ID
       router.push(`/payment/${orderId}?id=${paymentId}`);
 
-      // 4️⃣ Clear cart and local storage
       clearCart();
       localStorage.removeItem("cart");
       localStorage.removeItem("promoCode");

@@ -35,14 +35,12 @@ export default function PaymentPage({
   const orderId = params.orderId;
   const [paymentId, setPaymentId] = useState<string | null>(null);
 
-  // Get paymentId from query
   useEffect(() => {
     const id = searchParams.get("id");
     if (id) setPaymentId(id);
     else console.error("Payment ID missing from URL");
   }, [searchParams]);
 
-  // Poll payment status every 5 seconds
   useEffect(() => {
     if (!paymentId) return;
 
@@ -75,7 +73,6 @@ export default function PaymentPage({
     return () => clearInterval(interval);
   }, [paymentId, orderId, router]);
 
-  // Countdown timer
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
@@ -94,7 +91,6 @@ export default function PaymentPage({
   const minutes = String(Math.floor(timeLeft / 60)).padStart(2, "0");
   const seconds = String(timeLeft % 60).padStart(2, "0");
 
-  // Function to manually check payment status
   const checkPaymentManually = async () => {
     if (!paymentId) return alert("Missing payment ID");
 
