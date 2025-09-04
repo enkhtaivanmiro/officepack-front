@@ -137,23 +137,24 @@ export default function OrderSummary({
         <span className="text-black">₮{total}</span>
       </div>
 
-      <div className="flex mb-4">
-        <div className="flex items-center bg-gray-100 rounded-full px-4 py-2 flex-grow">
-          <FaTag className="text-gray-400 mr-2" />
+      <div className="flex flex-col sm:flex-row mb-4 gap-3 w-full">
+        <div className="flex items-center bg-gray-100 rounded-full px-4 py-2 flex-1 min-w-0">
+          <FaTag className="text-gray-400 mr-2 flex-shrink-0" />
           <input
             type="text"
             value={promoCode}
             onChange={(e) => setPromoCode(e.target.value)}
             placeholder={t("promoPlaceholder")}
-            className="flex-grow bg-transparent focus:outline-none font-extralight text-gray-600"
+            className="flex-1 bg-transparent focus:outline-none font-extralight text-gray-600 min-w-0"
             readOnly={readonlyPromo}
           />
         </div>
+
         {!appliedPromo ? (
           <button
             type="button"
             onClick={handleApply}
-            className="bg-black rounded-full px-4 py-2 text-white h-12 w-32 text-base ml-3"
+            className="bg-black rounded-full px-4 py-2 text-white h-12 w-full sm:w-auto text-base"
             disabled={readonlyPromo}
           >
             {t("apply")}
@@ -162,7 +163,7 @@ export default function OrderSummary({
           <button
             type="button"
             onClick={handleRemove}
-            className="bg-red-500 rounded-full px-4 py-2 text-white h-12 w-32 text-base ml-3"
+            className="bg-red-500 rounded-full px-4 py-2 text-white h-12 w-full sm:w-auto text-base"
             disabled={readonlyPromo}
           >
             {t("remove")}

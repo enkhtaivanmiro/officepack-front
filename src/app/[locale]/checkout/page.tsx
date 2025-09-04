@@ -47,19 +47,14 @@ export default function Checkout() {
     })
       .then(async (res) => {
         const data = await res.json();
-
         if (!res.ok) {
-          if (
-            data.message &&
-            data.message.toString().includes("Not enough stock")
-          ) {
+          if (data.message?.includes("Not enough stock")) {
             alert(data.message);
             router.push("/cart");
             return;
           }
           throw new Error(data.message || "Failed to fetch order preview");
         }
-
         return data;
       })
       .then((data) => {
@@ -71,9 +66,9 @@ export default function Checkout() {
           total: data.total,
         });
       })
-      .catch((err) => console.error(err))
+      .catch(console.error)
       .finally(() => setLoading(false));
-  }, [cart, setPrice]);
+  }, [cart, setPrice, router]);
 
   const handlePay = async () => {
     if (!selectedPayment) return alert(t("selectPaymentAlert"));
@@ -82,18 +77,17 @@ export default function Checkout() {
     if (!addressData) return alert(t("provideAddressAlert"));
 
     const parsedAddress = JSON.parse(addressData);
-
     const items = cart.map((item) => ({
       variant_id: item.variantId,
       quantity: item.quantity,
     }));
-
     const promoId = localStorage.getItem("promoId");
 
     try {
       setLoading(true);
 
-      const response = await fetch("http://localhost:3000/orders", {
+      // 1️⃣ Create Order
+      const orderResponse = await fetch("http://localhost:3000/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -108,31 +102,48 @@ export default function Checkout() {
         }),
       });
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        // Check for "not enough stock" message
-        if (
-          result.message &&
-          typeof result.message === "string" &&
-          result.message.includes("Not enough stock")
-        ) {
-          alert(result.message);
+      const orderResult = await orderResponse.json();
+      if (!orderResponse.ok) {
+        if (orderResult.message?.includes("Not enough stock")) {
+          alert(orderResult.message);
           router.push("/cart");
           return;
         }
-
-        throw new Error(result.message || "Order creation failed");
+        throw new Error(orderResult.message || "Order creation failed");
       }
 
-      console.log("Order created successfully:", result);
+      const orderId = orderResult.id;
+      if (!orderId) throw new Error("Order ID missing");
 
+      // 2️⃣ Create Payment
+      const paymentResponse = await fetch(
+        "http://localhost:3000/payment/create",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: orderId,
+            amount: price.total,
+            method: selectedPayment.toLowerCase(),
+          }),
+        }
+      );
+
+      const paymentResult = await paymentResponse.json();
+      if (!paymentResponse.ok)
+        throw new Error(paymentResult.message || "Failed to create payment");
+
+      const paymentId = paymentResult._id;
+      if (!paymentId) throw new Error("Payment ID missing");
+
+      // 3️⃣ Redirect with valid ID
+      router.push(`/payment/${orderId}?id=${paymentId}`);
+
+      // 4️⃣ Clear cart and local storage
       clearCart();
       localStorage.removeItem("cart");
       localStorage.removeItem("promoCode");
       localStorage.removeItem("promoId");
-
-      router.push("/payment");
     } catch (err: any) {
       console.error(err);
       alert(err.message || t("orderCreationError"));
@@ -149,7 +160,7 @@ export default function Checkout() {
     {
       title: t("payByEWallet"),
       methods: [
-        { src: "/icons/qpay.png", name: "qPay Wallet" },
+        { src: "/icons/qpay.png", name: "qPay" },
         { src: "/icons/socialpay.png", name: "SocialPay" },
         { src: "/icons/qpos.png", name: "qPOS" },
         { src: "/icons/digipay.png", name: "DiGi Pay" },
@@ -170,33 +181,34 @@ export default function Checkout() {
   return (
     <div className="min-h-screen flex flex-col text-black">
       <Header />
-
       <main className="flex-1 flex flex-col md:flex-row gap-8 max-w-6xl w-full mx-auto px-4 py-8 font-satoshi">
         <div className="flex-1 flex flex-col gap-8">
           {paymentGroups.map((group, i) => (
             <div key={i}>
               <h3 className="text-base font-semibold mb-3">{group.title}</h3>
               <div className="grid grid-cols-2 gap-3">
-                {group.methods.map((method, j) => (
-                  <div
-                    key={j}
-                    onClick={() => setSelectedPayment(method.name)}
-                    className={`flex items-center gap-2 border rounded-lg px-4 py-3 cursor-pointer ${
-                      selectedPayment === method.name
-                        ? "border-green-600 bg-green-50"
-                        : "border-gray-200 bg-white"
-                    }`}
-                  >
-                    <Image
-                      src={method.src}
-                      alt={method.name}
-                      width={24}
-                      height={24}
-                      className="object-contain"
-                    />
-                    <span>{method.name}</span>
-                  </div>
-                ))}
+                {group.methods
+                  .filter((method) => method.name === "qPay")
+                  .map((method, j) => (
+                    <div
+                      key={j}
+                      onClick={() => setSelectedPayment(method.name)}
+                      className={`flex items-center gap-2 border rounded-lg px-4 py-3 cursor-pointer ${
+                        selectedPayment === method.name
+                          ? "border-green-600 bg-green-50"
+                          : "border-gray-200 bg-white"
+                      }`}
+                    >
+                      <Image
+                        src={method.src}
+                        alt={method.name}
+                        width={24}
+                        height={24}
+                        className="object-contain"
+                      />
+                      <span>{method.name}</span>
+                    </div>
+                  ))}
               </div>
             </div>
           ))}
@@ -241,7 +253,7 @@ export default function Checkout() {
                   </div>
                   <div className="flex justify-between py-1 text-gray-500 mb-1">
                     <span>{t("discount")}</span>
-                    <span className="text-red-500 text-lg ">
+                    <span className="text-red-500 text-lg">
                       -₮{price.discount}
                     </span>
                   </div>
@@ -280,7 +292,6 @@ export default function Checkout() {
           )}
         </div>
       </main>
-
       <Footer />
     </div>
   );
