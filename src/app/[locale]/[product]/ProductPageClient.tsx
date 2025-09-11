@@ -62,6 +62,8 @@ export default function ProductPageClient({
 
   const colorAttr = attributes.find((a) => a.name.toLowerCase() === "color");
   const sizeAttr = attributes.find((a) => a.name.toLowerCase() === "size");
+  const [customName, setCustomName] = useState<string>("");
+  const nameAttr = attributes.find((a) => a.name.toLowerCase() === "name");
 
   useEffect(() => {
     const restoreExpiredOrders = async () => {
@@ -227,6 +229,7 @@ export default function ProductPageClient({
       price,
       image: images[mainImageIndex]?.url ?? "",
       variantId: currentVariant.id,
+      customName,
     };
 
     addToCart(item);
@@ -345,6 +348,21 @@ export default function ProductPageClient({
                   </button>
                 ))}
               </div>
+            </div>
+          )}
+
+          {nameAttr && productId === "01071048-fe3a-49c2-9857-d79f0d7b7920" && (
+            <div className="mb-6">
+              <p className="font-extralight mb-4 text-gray-600">
+                {t("enterName")}
+              </p>
+              <input
+                type="text"
+                value={customName}
+                onChange={(e) => setCustomName(e.target.value)}
+                placeholder={t("namePlaceholder")}
+                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black text-black"
+              />
             </div>
           )}
 
