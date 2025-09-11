@@ -126,6 +126,44 @@ export default function ProductPageClient({
     );
 
   useEffect(() => {
+    const masterVariant = variants.find((v) => v.is_master);
+
+    if (masterVariant) {
+      const colorVal = attributeValues.find(
+        (av) =>
+          colorAttr &&
+          av.attribute_id === colorAttr.id &&
+          masterVariant.attribute_value_ids.includes(av.id)
+      );
+      if (colorVal) setSelectedColor(colorVal.presentation);
+
+      const sizeVal = attributeValues.find(
+        (av) =>
+          sizeAttr &&
+          av.attribute_id === sizeAttr.id &&
+          masterVariant.attribute_value_ids.includes(av.id)
+      );
+      if (sizeVal) setSelectedSize(sizeVal.presentation);
+    } else {
+      if (availableColors.length > 0 && !selectedColor) {
+        setSelectedColor(availableColors[0].presentation);
+      }
+      if (availableSizes.length > 0 && !selectedSize) {
+        setSelectedSize(availableSizes[0].presentation);
+      }
+    }
+  }, [
+    variants,
+    attributeValues,
+    colorAttr,
+    sizeAttr,
+    availableColors,
+    availableSizes,
+    selectedColor,
+    selectedSize,
+  ]);
+
+  useEffect(() => {
     const selectedIds: string[] = [];
 
     if (selectedColor && colorAttr) {

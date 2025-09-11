@@ -28,7 +28,7 @@ export default function PaymentPage() {
         cart.forEach(async (item: any) => {
           try {
             const res = await fetch(
-              `http://localhost:3000/variant/${item.variantId}/stock`
+              `http://localhost:3000/variant-attribute/${item.variantId}/stock`
             );
             if (!res.ok) throw new Error("Failed to fetch stock");
             const data = await res.json();
@@ -37,7 +37,7 @@ export default function PaymentPage() {
             const newStock = currentStock + item.quantity;
 
             await fetch(
-              `http://localhost:3000/variant/${item.variantId}/stock`,
+              `http://localhost:3000/variant-attribute/${item.variantId}/stock`,
               {
                 method: "PATCH",
                 headers: {

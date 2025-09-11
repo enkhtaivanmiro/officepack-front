@@ -9,7 +9,8 @@ export type CartItem = {
   price: number;
   quantity: number;
   image: string;
-  variantId?: string;
+  variantId?: string; // frontend variant
+  variantAttributeId?: string; // backend attribute
 };
 
 const getInitialCart = (): CartItem[] => {
