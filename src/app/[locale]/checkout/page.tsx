@@ -18,6 +18,14 @@ export default function Checkout() {
   const router = useRouter();
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [customNames, setCustomNames] = useState<{ [key: string]: string }>({});
+  useEffect(() => {
+    const initialNames: { [key: string]: string } = {};
+    cart.forEach((item) => {
+      initialNames[item.id] = item.customName || "";
+    });
+    setCustomNames(initialNames);
+  }, [cart]);
 
   useEffect(() => {
     fetch("http://localhost:3000/orders/restore-expired", { method: "POST" })
@@ -34,6 +42,7 @@ export default function Checkout() {
     const items = cart.map((item) => ({
       variant_id: item.variantId,
       quantity: item.quantity,
+      customName: customNames[item.id] || "",
     }));
 
     setLoading(true);
@@ -80,6 +89,7 @@ export default function Checkout() {
     const items = cart.map((item) => ({
       variant_id: item.variantId,
       quantity: item.quantity,
+      customName: customNames[item.id] || "",
     }));
     const promoId = localStorage.getItem("promoId");
 
@@ -218,22 +228,37 @@ export default function Checkout() {
               {cart.map((item, index) => (
                 <div
                   key={`${item.id}-${index}`}
-                  className="flex items-center gap-3 border-b border-gray-100 py-3 bg-gray-100 rounded-md mb-2 p-2"
+                  className="flex flex-col gap-2 border-b border-gray-100 py-3 bg-gray-100 rounded-md mb-2 p-2"
                 >
-                  <Image
-                    src={item.image}
-                    alt={item.name}
-                    width={48}
-                    height={48}
-                    className="object-contain rounded"
-                  />
-                  <div className="flex-1 text-regular">
-                    <p>{item.name}</p>
-                    <p className="text-gray-500">
-                      {item.quantity} × ₮{item.price}
-                    </p>
+                  <div className="flex items-center gap-3">
+                    <Image
+                      src={item.image}
+                      alt={item.name}
+                      width={48}
+                      height={48}
+                      className="object-contain rounded"
+                    />
+                    <div className="flex-1 text-regular">
+                      <p>{item.name}</p>
+                      <p className="text-gray-500">
+                        {item.quantity} × ₮{item.price}
+                      </p>
+                    </div>
+                    <p className="font-medium">₮{item.price * item.quantity}</p>
                   </div>
-                  <p className="font-medium">₮{item.price * item.quantity}</p>
+
+                  <input
+                    type="text"
+                    placeholder="Custom Name (optional)"
+                    value={customNames[item.id] || ""}
+                    onChange={(e) =>
+                      setCustomNames((prev) => ({
+                        ...prev,
+                        [item.id]: e.target.value,
+                      }))
+                    }
+                    className="border border-gray-300 rounded-md px-2 py-1 text-sm w-full"
+                  />
                 </div>
               ))}
 

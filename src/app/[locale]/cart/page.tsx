@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import OrderSummary from "../../components/OrderSummary";
@@ -17,6 +17,15 @@ export default function CartPage() {
   const router = useRouter();
   const t = useTranslations("Cart");
   const setOrderParams = useSetAtom(orderParamsAtom);
+  const [customNames, setCustomNames] = useState<{ [key: string]: string }>({});
+
+  useEffect(() => {
+    const initialNames: { [key: string]: string } = {};
+    cart.forEach((item) => {
+      initialNames[item.id] = item.customName || "";
+    });
+    setCustomNames(initialNames);
+  }, [cart]);
 
   useEffect(() => {
     const subtotal = cart.reduce((sum, i) => sum + i.price * i.quantity, 0);

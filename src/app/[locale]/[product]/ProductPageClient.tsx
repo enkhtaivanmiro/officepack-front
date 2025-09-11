@@ -57,29 +57,24 @@ export default function ProductPageClient({
   const [quantity, setQuantity] = useState(1);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [customName, setCustomName] = useState<string>("");
 
   const { addToCart } = useCart();
 
   const colorAttr = attributes.find((a) => a.name.toLowerCase() === "color");
   const sizeAttr = attributes.find((a) => a.name.toLowerCase() === "size");
-  const [customName, setCustomName] = useState<string>("");
   const nameAttr = attributes.find((a) => a.name.toLowerCase() === "name");
 
   useEffect(() => {
     const restoreExpiredOrders = async () => {
       try {
-        const res = await fetch(
-          "http://localhost:3000/orders/restore-expired",
-          {
-            method: "POST",
-          }
-        );
-        const data = await res.json();
+        await fetch("http://localhost:3000/orders/restore-expired", {
+          method: "POST",
+        });
       } catch (err) {
         console.error("Failed to restore expired orders:", err);
       }
     };
-
     restoreExpiredOrders();
   }, []);
 
@@ -351,7 +346,7 @@ export default function ProductPageClient({
             </div>
           )}
 
-          {nameAttr && productId === "01071048-fe3a-49c2-9857-d79f0d7b7920" && (
+          {productId === "01071048-fe3a-49c2-9857-d79f0d7b7920" && (
             <div className="mb-6">
               <p className="font-extralight mb-4 text-gray-600">
                 {t("enterName")}

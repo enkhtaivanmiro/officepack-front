@@ -58,7 +58,7 @@ export default function PaymentPage({
 
         if (data.status === "success") {
           clearInterval(interval);
-          router.push("/complete");
+          router.push(`/complete?invoiceId=${paymentId}`);
         }
       } catch (err) {
         console.error(err);
@@ -105,7 +105,7 @@ export default function PaymentPage({
       setPaymentData(data);
 
       if (data.status === "success") {
-        router.push("/complete");
+        router.push(`/complete?invoiceId=${paymentId}`);
       } else {
         alert("Payment is not done yet.");
       }

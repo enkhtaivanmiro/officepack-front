@@ -38,7 +38,9 @@
     "selectColor": "Select a color",
     "chooseSize": "Choose a size",
     "selectVariantAlert": "Please select a color and size before adding to cart.",
-    "addToCart": "Add to Cart"
+    "addToCart": "Add to Cart",
+    "enterName": "Enter Name for Printing",
+    "namePlaceholder": "nin9"
   },
   "Index": {
     "hero_new": "NEW",

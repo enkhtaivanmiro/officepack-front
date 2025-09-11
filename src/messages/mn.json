@@ -38,7 +38,9 @@
     "selectColor": "Өнгө сонгох",
     "chooseSize": "Хэмжээг сонгох",
     "selectVariantAlert": "Сагсанд нэмэхээс өмнө өнгө болон хэмжээг сонгоно уу.",
-    "addToCart": "Сагсанд нэмэх"
+    "addToCart": "Сагсанд нэмэх",
+    "enterName": "Хэвлүүлэх нэрээ оруулна уу",
+    "namePlaceholder": "nin9"
   },
   "Index": {
     "hero_new": "ШИНЭ",
