@@ -1,18 +1,102 @@
 {
+  "Header": {
+    "shop": "Дэлгүүр",
+    "team": "Баг",
+    "match": "Тоглолт",
+    "about": "Бидний тухай",
+    "achievement": "Амжилт",
+    "english": "Англи",
+    "mongolian": "Монгол"
+  },
+  "Footer": {
+    "followUs": "Биднийг дагаарай"
+  },
+  "AddressPage": {
+    "fullName": "Бүтэн нэр",
+    "fullNamePlaceholder": "Бүтэн нэрээ оруулна уу",
+    "phoneNumber": "Утасны дугаар",
+    "phoneNumberPlaceholder": "Утасны дугаараа оруулна уу",
+    "email": "Имэйл",
+    "emailPlaceholder": "Имэйл хаягаа оруулна уу",
+    "address": "Хаяг",
+    "addressPlaceholder": "Хаягаа оруулна уу",
+    "additionalInfo": "Нэмэлт мэдээлэл",
+    "additionalInfoPlaceholder": "Хүргэлтийн тэмдэглэл (заавал биш)",
+    "continue": "Төлбөр төлөх",
+    "orderSummary": "Захиалгын мэдээ",
+    "subtotal": "Нийт",
+    "discount": "Хөнгөлөлт",
+    "deliveryFee": "Хүргэлтийн төлбөр",
+    "total": "Нийт дүн",
+    "promoCode": "Хөнгөлөлтийн код",
+    "apply": "Хэрэглэх"
+  },
+  "ProductPage": {
+    "loading": "Ачааллаж байна...",
+    "failedLoad": "Бүтээгдэхүүнийг ачаалах боломжгүй. Дахин оролдоно уу.",
+    "noImages": "Зураг байхгүй",
+    "selectColor": "Өнгө сонгох",
+    "chooseSize": "Хэмжээг сонгох",
+    "selectVariantAlert": "Сагсанд нэмэхээс өмнө өнгө болон хэмжээг сонгоно уу.",
+    "addToCart": "Сагсанд нэмэх",
+    "enterName": "Хэвлүүлэх нэрээ оруулна уу",
+    "namePlaceholder": "nin9"
+  },
   "Index": {
-    "seat": "Суудал",
-    "row": "Эгнээ",
-    "sector": "Сектор",
-    "table": "Ширээ",
-    "floor": "Давхар",
-    "seat_cnt": "Суудлын тоо",
-    "vip": "VIP",
-    "toHome": "Нүүр хуудас руу",
+    "hero_new": "ШИНЭ",
+    "hero_merch": "БАРАА",
+    "hero_out_now": "ОДОО БЭЛЭН",
+    "hero_cta": "ДЭЛГҮҮР",
+    "official_jersey": "АЛБАН ЁСНЫ ФУТБОЛК"
+  },
+  "Cart": {
+    "empty": "Таны сагс хоосон байна.",
+    "orderSummary": "Захиалгын мэдээ",
+    "subtotal": "Нийт",
+    "discount": "Хөнгөлөлт (-20%)",
+    "deliveryFee": "Хүргэлтийн төлбөр",
+    "total": "Нийт дүн",
+    "promoPlaceholder": "Хөнгөлөлтийн код оруулах",
+    "apply": "Хэрэглэх",
+    "checkout": "Төлбөр төлөх →",
+    "remove": "Устгах",
+    "promoDiscount": "Хөнгөлөлтийн купон"
+  },
+  "Checkout": {
+    "subtotal": "Нийт",
+    "discount": "Хөнгөлөлт",
+    "delivery": "Хүргэлт",
+    "total": "Нийт дүн",
     "back": "Буцах",
-    "pageNotFound": "Хуудас олдсонгүй",
-    "step": "Алхам",
-    "deleteAccount": "Бүртгэл устгах",
-    "deleteWarning": "Бүртгэлээ устгахын тулд танд идэвхтэй тасалбар болон таны хэтэвчинд үлдэгдэл байх ёсгүйг анхаарна уу!",
-    "deleteWarning2": "Устгасан бүртгэлийг сэргээх ямарч боломжгүйг анхаарна уу!!!"
+    "pay": "Төлөх",
+    "cartEmpty": "Таны сагс хоосон байна.",
+    "itemCannotBeReturned": "Бүтээгдэхүүнийг буцаах боломжгүйг анхаарна уу",
+    "secondaryMarket": "Худалдан авсан тасалбараа хоёрдогч зах зээл дээр зарах боломжтой",
+    "selectPaymentAlert": "Төлбөрийн аргыг сонгоно уу!",
+    "provideAddressAlert": "Үргэлжлэхээс өмнө хаягаа оруулна уу!",
+    "orderCreationError": "Захиалгыг үүсгэхэд алдаа гарлаа.",
+    "payByCard": "Картын төлбөр",
+    "creditDebitCard": "Кредит/Дебит карт",
+    "payByEWallet": "Цахим түрийвчээр төлөх",
+    "payByInstallments": "Кредит эсвэл хэсэгчилсэн төлбөр",
+    "loadingTotals": "Уншиж байна",
+    "processing": "Уншиж байна"
+  },
+  "OrderConfirmation": {
+    "orderNumber": "Захиалгын дугаар",
+    "orderDate": "Захиалгын огноо",
+    "total": "Нийт дүн",
+    "thankYou": "Таны худалдан авалтанд баярлалаа",
+    "goHome": "Нүүр хуудас руу"
+  },
+  "PaymentPage": {
+    "step": "Алхам 2",
+    "payment": "Төлбөр",
+    "instructions": "Банкны апп-аар QR кодыг уншуулан төлбөрөө хийнэ үү",
+    "qrCodeAlt": "QR Код",
+    "cancelOrder": "Захиалгыг цуцлах",
+    "minutes": "мин",
+    "seconds": "сек",
+    "checkTransaction": "Гүйлгээг шалгах"
   }
 }

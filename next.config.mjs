@@ -72,7 +72,6 @@ const nextConfig = {
         use: ['@svgr/webpack'],
       },
     );
-    // Modify the file loader rule to ignore *.svg, since we have it handled now.
     fileLoaderRule.exclude = /\.svg$/i;
     if (ANALYZE) {
       config.plugins.push(new DuplicateReporterPlugin());
@@ -87,27 +86,31 @@ const nextConfig = {
   reactStrictMode: false,
   poweredByHeader: false,
   transpilePackages: [],
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'cdn.portal.mn',
-        port: '',
+images: {
+  remotePatterns: [
+    {
+      protocol: 'https',
+      hostname: 'huns-esport.s3.amazonaws.com',
+      port: '',
+    },
+    {
+      protocol: 'https',
+      hostname: 'cdn.portal.mn',
+      port: '',
+    },
+    {
+      protocol: 'https',
+      hostname: 's1.ticketm.net',
+      port: '',
+    },
+          {
+        protocol: "https",
+        hostname: "d3sbph5g2uu26k.cloudfront.net",
+        pathname: "/**",
       },
-      {
-        protocol: 'https',
-        hostname: 's1.ticketm.net',
-        port: '',
-      },
-    ],
-  },
-  sassOptions: {
-    outputStyle: 'compressed',
-  },
-};
+  ],
+},
 
-// const withBundleAnalyzer = require('@next/bundle-analyzer')({
-//   enabled: ANALYZE === 'true',
-// });
+};
 
 export default withNextIntl(nextConfig);

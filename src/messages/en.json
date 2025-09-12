@@ -1,18 +1,102 @@
 {
+  "Header": {
+    "shop": "SHOP",
+    "team": "TEAM",
+    "match": "MATCH",
+    "about": "ABOUT",
+    "achievement": "ACHIEVEMENT",
+    "english": "English",
+    "mongolian": "Mongolian"
+  },
+  "Footer": {
+    "followUs": "Follow Us"
+  },
+  "AddressPage": {
+    "fullName": "Full Name",
+    "fullNamePlaceholder": "Enter your full name",
+    "phoneNumber": "Phone Number",
+    "phoneNumberPlaceholder": "Enter your phone number",
+    "email": "Email",
+    "emailPlaceholder": "Enter your email",
+    "address": "Address",
+    "addressPlaceholder": "Enter your address",
+    "additionalInfo": "Additional Information",
+    "additionalInfoPlaceholder": "Notes for delivery (optional)",
+    "continue": "Continue to Checkout",
+    "orderSummary": "Order Summary",
+    "subtotal": "Subtotal",
+    "discount": "Discount",
+    "deliveryFee": "Delivery Fee",
+    "total": "Total",
+    "promoCode": "Promo code",
+    "apply": "Apply"
+  },
+  "ProductPage": {
+    "loading": "Loading...",
+    "failedLoad": "Failed to load product. Please try again later.",
+    "noImages": "No images available",
+    "selectColor": "Select a color",
+    "chooseSize": "Choose a size",
+    "selectVariantAlert": "Please select a color and size before adding to cart.",
+    "addToCart": "Add to Cart",
+    "enterName": "Enter Name for Printing",
+    "namePlaceholder": "nin9"
+  },
   "Index": {
-    "seat": "Seat",
-    "row": "Row",
-    "sector": "Sector",
-    "table": "Table",
-    "floor": "Floor",
-    "vip": "VIP",
-    "seat_cnt": "Number of seats",
-    "toHome": "Go to Home",
+    "hero_new": "NEW",
+    "hero_merch": "MERCHANDISE",
+    "hero_out_now": "OUT NOW",
+    "hero_cta": "SHOP NOW",
+    "official_jersey": "OFFICIAL JERSEY"
+  },
+    "Cart": {
+    "empty": "Your cart is empty.",
+    "orderSummary": "Order Summary",
+    "subtotal": "Subtotal",
+    "discount": "Discount (-20%)",
+    "deliveryFee": "Delivery Fee",
+    "total": "Total",
+    "promoPlaceholder": "Add promo code",
+    "apply": "Apply",
+    "checkout": "Go to Checkout →",
+    "remove": "Remove",
+    "promoDiscount": "Promo Discount"
+  },
+    "Checkout": {
+    "subtotal": "Subtotal",
+    "discount": "Discount",
+    "delivery": "Delivery",
+    "total": "Total",
     "back": "Back",
-    "pageNotFound": "We can't find the page you're looking for. Check the URL and try again.",
-    "step": "Step",
-    "deleteAccount": "Delete Account",
-    "deleteWarning": "Please note that you must not have any active tickets or balance in your wallet to delete your account !",
-    "deleteWarning2": "Please note that deleted accounts cannot be recovered !!!"
+    "pay": "Pay",
+    "cartEmpty": "Your cart is empty.",
+    "itemCannotBeReturned": "Please note that the item cannot be returned",
+    "secondaryMarket": "You may resell your purchased ticket on the SECONDARY MARKET",
+    "selectPaymentAlert": "Please select a payment method!",
+    "provideAddressAlert": "Please provide your address before proceeding!",
+    "orderCreationError": "Something went wrong while creating the order.",
+    "payByCard": "Pay by Card",
+    "creditDebitCard": "Credit/Debit Card",
+    "payByEWallet": "Pay by E-Wallet",
+    "payByInstallments": "Pay by Credit or Installments",
+    "loadingTotals": "Loading totals",
+    "processing": "Processing"
+  },
+    "OrderConfirmation": {
+    "orderNumber": "Order Number",
+    "orderDate": "Order Date",
+    "total": "Total",
+    "thankYou": "Thank you for your purchase",
+    "goHome": "Go Home"
+  },
+    "PaymentPage": {
+    "step": "Step 2",
+    "payment": "Payment",
+    "instructions": "Scan the QR code using any of your banking app to make a payment",
+    "qrCodeAlt": "QR Code",
+    "cancelOrder": "Cancel order",
+    "minutes": "min",
+    "seconds": "sec",
+    "checkTransaction": "Check the transaction"
   }
 }
