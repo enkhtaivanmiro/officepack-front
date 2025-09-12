@@ -103,6 +103,11 @@ images: {
       hostname: 's1.ticketm.net',
       port: '',
     },
+          {
+        protocol: "https",
+        hostname: "d3sbph5g2uu26k.cloudfront.net",
+        pathname: "/**",
+      },
   ],
 },
 

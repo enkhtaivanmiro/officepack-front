@@ -30,7 +30,7 @@ export default function CartPage() {
   useEffect(() => {
     const subtotal = cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
-    const deliveryFee = 15000;
+    const deliveryFee = 0;
 
     const promoData = localStorage.getItem("promoCodeData");
     let discount = 0;

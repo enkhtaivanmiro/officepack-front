@@ -34,7 +34,7 @@ export default function OrderConfirmationPage() {
 
       try {
         const res = await fetch(
-          `http://localhost:3000/payment/ebarimt/${invoiceId}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/payment/ebarimt/${invoiceId}`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },

@@ -68,9 +68,12 @@ export default function ProductPageClient({
   useEffect(() => {
     const restoreExpiredOrders = async () => {
       try {
-        await fetch("http://localhost:3000/orders/restore-expired", {
-          method: "POST",
-        });
+        await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/orders/restore-expired`,
+          {
+            method: "POST",
+          }
+        );
       } catch (err) {
         console.error("Failed to restore expired orders:", err);
       }
@@ -82,19 +85,23 @@ export default function ProductPageClient({
     const fetchData = async () => {
       try {
         const [prodRes, attrRes, valRes, varRes] = await Promise.all([
-          fetch(`http://localhost:3000/product/${productId}`).then((r) =>
-            r.json()
-          ),
-          fetch(`http://localhost:3000/attribute`).then((r) => r.json()),
-          fetch(`http://localhost:3000/attribute_value`).then((r) => r.json()),
-          fetch(`http://localhost:3000/product/${productId}/variants`).then(
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/product/${productId}`).then(
             (r) => r.json()
           ),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/attribute`).then((r) =>
+            r.json()
+          ),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/attribute_value`).then(
+            (r) => r.json()
+          ),
+          fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/product/${productId}/variants`
+          ).then((r) => r.json()),
         ]);
 
         setProduct(prodRes);
         const imgRes = await fetch(
-          `http://localhost:3000/images/product/${productId}`
+          `${process.env.NEXT_PUBLIC_API_URL}/images/product/${productId}`
         ).then((r) => r.json());
         setImages(imgRes);
         setAttributes(attrRes);

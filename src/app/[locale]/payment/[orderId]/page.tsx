@@ -49,7 +49,7 @@ export default function PaymentPage({
     const fetchPaymentStatus = async () => {
       try {
         const res = await fetch(
-          `http://localhost:3000/payment/check/${orderId}/${paymentId}`
+          `${process.env.NEXT_PUBLIC_API_URL}/payment/check/${orderId}/${paymentId}`
         );
         if (!res.ok) throw new Error("Failed to fetch payment status");
 
@@ -82,7 +82,9 @@ export default function PaymentPage({
 
   useEffect(() => {
     if (timeLeft === 0) {
-      fetch("http://localhost:3000/orders/restore-expired", { method: "POST" })
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/restore-expired`, {
+        method: "POST",
+      })
         .then(() => console.log("Expired order restored"))
         .catch(console.error);
     }
@@ -97,7 +99,7 @@ export default function PaymentPage({
     try {
       setLoading(true);
       const res = await fetch(
-        `http://localhost:3000/payment/check/${orderId}/${paymentId}`
+        `${process.env.NEXT_PUBLIC_API_URL}/payment/check/${orderId}/${paymentId}`
       );
       if (!res.ok) throw new Error("Failed to check payment status");
 

@@ -45,8 +45,8 @@ export default function Page() {
     async function fetchData() {
       try {
         const [prodRes, imgRes] = await Promise.all([
-          fetch("http://localhost:3000/product"),
-          fetch("http://localhost:3000/images"),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/product`),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/images`),
         ]);
 
         if (!prodRes.ok) throw new Error("Failed to fetch products");
@@ -62,7 +62,7 @@ export default function Page() {
         await Promise.all(
           productsData.map(async (p) => {
             const res = await fetch(
-              `http://localhost:3000/product/${p.id}/variants`
+              `${process.env.NEXT_PUBLIC_API_URL}/product/${p.id}/variants`
             );
             const data: Variant[] = await res.json();
             variantsMap[p.id] = data;

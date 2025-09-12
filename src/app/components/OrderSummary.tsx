@@ -54,7 +54,7 @@ export default function OrderSummary({
 
     try {
       const res = await fetch(
-        `http://localhost:3000/promos/${promoCode}/validate`,
+        `${process.env.NEXT_PUBLIC_API_URL}/promos/${promoCode}/validate`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },

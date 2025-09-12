@@ -28,7 +28,9 @@ export default function Checkout() {
   }, [cart]);
 
   useEffect(() => {
-    fetch("http://localhost:3000/orders/restore-expired", { method: "POST" })
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/restore-expired`, {
+      method: "POST",
+    })
       .then((res) =>
         res.ok ? res.json() : console.error("Failed to restore expired orders")
       )
@@ -46,7 +48,7 @@ export default function Checkout() {
     }));
 
     setLoading(true);
-    fetch("http://localhost:3000/orders/preview", {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/preview`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -96,20 +98,23 @@ export default function Checkout() {
     try {
       setLoading(true);
 
-      const orderResponse = await fetch("http://localhost:3000/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          full_name: parsedAddress.name,
-          email: parsedAddress.email,
-          phone_number: parsedAddress.phone,
-          address: parsedAddress.address,
-          status: "pending",
-          items,
-          promo_id: promoId || null,
-          payment_method: selectedPayment,
-        }),
-      });
+      const orderResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/orders`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            full_name: parsedAddress.name,
+            email: parsedAddress.email,
+            phone_number: parsedAddress.phone,
+            address: parsedAddress.address,
+            status: "pending",
+            items,
+            promo_id: promoId || null,
+            payment_method: selectedPayment,
+          }),
+        }
+      );
 
       const orderResult = await orderResponse.json();
       if (!orderResponse.ok) {
@@ -125,7 +130,7 @@ export default function Checkout() {
       if (!orderId) throw new Error("Order ID missing");
 
       const paymentResponse = await fetch(
-        "http://localhost:3000/payment/create",
+        `${process.env.NEXT_PUBLIC_API_URL}/payment/create`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
