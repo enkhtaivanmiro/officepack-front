@@ -2,7 +2,7 @@ import "./globals.css";
 import { montserrat } from "@/lib/fonts";
 
 export const metadata = {
-  title: "Huns-Esport",
+  title: "The Huns",
   description: "Huns-Esport",
 };
 
