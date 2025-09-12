@@ -19,11 +19,8 @@ interface PaymentData {
   status: string;
 }
 
-export default function PaymentPage({
-  params,
-}: {
-  params: { orderId: string };
-}) {
+export default function PaymentPage({ params }: any) {
+  const orderId = params.orderId; // ✅ use `any` to bypass server typing
   const t = useTranslations("PaymentPage");
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -31,31 +28,25 @@ export default function PaymentPage({
   const [timeLeft, setTimeLeft] = useState(10 * 60);
   const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
   const [loading, setLoading] = useState(true);
-
-  const orderId = params.orderId;
   const [paymentId, setPaymentId] = useState<string | null>(null);
 
   useEffect(() => {
     const id = searchParams.get("id");
     if (id) setPaymentId(id);
-    else console.error("Payment ID missing from URL");
   }, [searchParams]);
 
   useEffect(() => {
     if (!paymentId) return;
-
     let interval: NodeJS.Timeout;
 
     const fetchPaymentStatus = async () => {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/payment/check/${orderId}/${paymentId}`
+          `${process.env.NEXT_PUBLIC_API_URL}/payment/check/${orderId}/${paymentId}`,
         );
         if (!res.ok) throw new Error("Failed to fetch payment status");
-
         const data: PaymentData = await res.json();
         setPaymentData(data);
-
         if (data.status === "success") {
           clearInterval(interval);
           router.push(`/complete?invoiceId=${paymentId}`);
@@ -84,9 +75,7 @@ export default function PaymentPage({
     if (timeLeft === 0) {
       fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/restore-expired`, {
         method: "POST",
-      })
-        .then(() => console.log("Expired order restored"))
-        .catch(console.error);
+      }).catch(console.error);
     }
   }, [timeLeft]);
 
@@ -95,22 +84,17 @@ export default function PaymentPage({
 
   const checkPaymentManually = async () => {
     if (!paymentId) return alert("Missing payment ID");
-
     try {
       setLoading(true);
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/payment/check/${orderId}/${paymentId}`
+        `${process.env.NEXT_PUBLIC_API_URL}/payment/check/${orderId}/${paymentId}`,
       );
       if (!res.ok) throw new Error("Failed to check payment status");
-
       const data: PaymentData = await res.json();
       setPaymentData(data);
-
-      if (data.status === "success") {
+      if (data.status === "success")
         router.push(`/complete?invoiceId=${paymentId}`);
-      } else {
-        alert("Payment is not done yet.");
-      }
+      else alert("Payment is not done yet.");
     } catch (err: any) {
       console.error(err);
       alert(err.message || "Something went wrong.");

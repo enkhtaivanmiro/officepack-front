@@ -56,7 +56,7 @@ export default function CartPage() {
 
     localStorage.setItem(
       "cartTotals",
-      JSON.stringify({ subtotal, discount, deliveryFee, total })
+      JSON.stringify({ subtotal, discount, deliveryFee, total }),
     );
   }, [cart, setOrderParams]);
 

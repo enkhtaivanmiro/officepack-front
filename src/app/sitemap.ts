@@ -1,21 +1,21 @@
-import { MetadataRoute } from 'next';
+import { MetadataRoute } from "next";
 
 const lastModified = new Date();
 
-const domain = 'https://www.portal.mn';
+const domain = "https://www.portal.mn";
 
 const events = [
-  'mens-night-2025-05-01',
-  'ineed-belegleye-2025-05-02',
-  'ineed-belegleye-2025-05-02-d4d3',
-  'mesa',
-  'saturday-night-2025-05-03',
-  'alsou',
-  'guys',
-  'wake-up-2025',
-  'camerton',
-  'in-da-khuree',
-  'art-n-tech-festival-of-nomads',
+  "mens-night-2025-05-01",
+  "ineed-belegleye-2025-05-02",
+  "ineed-belegleye-2025-05-02-d4d3",
+  "mesa",
+  "saturday-night-2025-05-03",
+  "alsou",
+  "guys",
+  "wake-up-2025",
+  "camerton",
+  "in-da-khuree",
+  "art-n-tech-festival-of-nomads",
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

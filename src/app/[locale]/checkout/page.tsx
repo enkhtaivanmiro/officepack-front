@@ -32,7 +32,7 @@ export default function Checkout() {
       method: "POST",
     })
       .then((res) =>
-        res.ok ? res.json() : console.error("Failed to restore expired orders")
+        res.ok ? res.json() : console.error("Failed to restore expired orders"),
       )
       .then((result) => console.log("Restored expired orders:", result))
       .catch((err) => console.error("Error restoring expired orders:", err));
@@ -113,7 +113,7 @@ export default function Checkout() {
             promo_id: promoId || null,
             payment_method: selectedPayment,
           }),
-        }
+        },
       );
 
       const orderResult = await orderResponse.json();
@@ -139,7 +139,7 @@ export default function Checkout() {
             amount: price.total,
             method: selectedPayment.toLowerCase(),
           }),
-        }
+        },
       );
 
       const paymentResult = await paymentResponse.json();

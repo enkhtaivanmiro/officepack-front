@@ -58,7 +58,7 @@ export default function OrderSummary({
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
       if (!res.ok) {
         const err = await res.json();

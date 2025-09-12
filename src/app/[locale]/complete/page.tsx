@@ -38,7 +38,7 @@ export default function OrderConfirmationPage() {
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-          }
+          },
         );
 
         if (!res.ok) {

@@ -28,7 +28,7 @@ export default function PaymentPage() {
         cart.forEach(async (item: any) => {
           try {
             const res = await fetch(
-              `${process.env.NEXT_PUBLIC_API_URL}/variant-attribute/${item.variantId}/stock`
+              `${process.env.NEXT_PUBLIC_API_URL}/variant-attribute/${item.variantId}/stock`,
             );
             if (!res.ok) throw new Error("Failed to fetch stock");
             const data = await res.json();
@@ -44,11 +44,11 @@ export default function PaymentPage() {
                   "Content-Type": "application/json",
                 },
                 body: JSON.stringify({ stock: newStock }),
-              }
+              },
             );
 
             console.log(
-              `Restored ${item.quantity} to variant ${item.variantId}, new stock = ${newStock}`
+              `Restored ${item.quantity} to variant ${item.variantId}, new stock = ${newStock}`,
             );
           } catch (err) {
             console.error("Error restoring stock:", err);
