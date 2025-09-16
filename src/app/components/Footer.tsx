@@ -14,10 +14,7 @@ export default function Footer() {
             <a href="https://www.facebook.com/TheHunsEsports/">
               <Facebook className="w-4 h-4" />
             </a>
-            <a href="#">
-              <img src="/icons/tiktok.svg" alt="TikTok" className="w-4 h-4" />
-            </a>
-            <a href="#">
+            <a href="https://www.youtube.com/@thehunsesports">
               <Youtube className="w-4 h-4" />
             </a>
             <a href="https://www.instagram.com/thehunsesports/">
