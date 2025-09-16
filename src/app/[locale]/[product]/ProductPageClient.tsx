@@ -72,7 +72,7 @@ export default function ProductPageClient({
           `${process.env.NEXT_PUBLIC_API_URL}/orders/restore-expired`,
           {
             method: "POST",
-          },
+          }
         );
       } catch (err) {
         console.error("Failed to restore expired orders:", err);
@@ -86,22 +86,22 @@ export default function ProductPageClient({
       try {
         const [prodRes, attrRes, valRes, varRes] = await Promise.all([
           fetch(`${process.env.NEXT_PUBLIC_API_URL}/product/${productId}`).then(
-            (r) => r.json(),
+            (r) => r.json()
           ),
           fetch(`${process.env.NEXT_PUBLIC_API_URL}/attribute`).then((r) =>
-            r.json(),
+            r.json()
           ),
           fetch(`${process.env.NEXT_PUBLIC_API_URL}/attribute_value`).then(
-            (r) => r.json(),
+            (r) => r.json()
           ),
           fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/product/${productId}/variants`,
+            `${process.env.NEXT_PUBLIC_API_URL}/product/${productId}/variants`
           ).then((r) => r.json()),
         ]);
 
         setProduct(prodRes);
         const imgRes = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/images/product/${productId}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/images/product/${productId}`
         ).then((r) => r.json());
         setImages(imgRes);
         setAttributes(attrRes);
@@ -120,13 +120,13 @@ export default function ProductPageClient({
   const availableColors = attributeValues
     .filter((av) => colorAttr && av.attribute_id === colorAttr.id)
     .filter((av) =>
-      variants.some((v) => v.attribute_value_ids.includes(av.id)),
+      variants.some((v) => v.attribute_value_ids.includes(av.id))
     );
 
   const availableSizes = attributeValues
     .filter((av) => sizeAttr && av.attribute_id === sizeAttr.id)
     .filter((av) =>
-      variants.some((v) => v.attribute_value_ids.includes(av.id)),
+      variants.some((v) => v.attribute_value_ids.includes(av.id))
     );
 
   useEffect(() => {
@@ -137,7 +137,7 @@ export default function ProductPageClient({
         (av) =>
           colorAttr &&
           av.attribute_id === colorAttr.id &&
-          masterVariant.attribute_value_ids.includes(av.id),
+          masterVariant.attribute_value_ids.includes(av.id)
       );
       if (colorVal) setSelectedColor(colorVal.presentation);
 
@@ -145,7 +145,7 @@ export default function ProductPageClient({
         (av) =>
           sizeAttr &&
           av.attribute_id === sizeAttr.id &&
-          masterVariant.attribute_value_ids.includes(av.id),
+          masterVariant.attribute_value_ids.includes(av.id)
       );
       if (sizeVal) setSelectedSize(sizeVal.presentation);
     } else {
@@ -173,7 +173,7 @@ export default function ProductPageClient({
     if (selectedColor && colorAttr) {
       const val = attributeValues.find(
         (av) =>
-          av.presentation === selectedColor && av.attribute_id === colorAttr.id,
+          av.presentation === selectedColor && av.attribute_id === colorAttr.id
       );
       if (val) selectedIds.push(val.id);
     }
@@ -181,7 +181,7 @@ export default function ProductPageClient({
     if (selectedSize && sizeAttr) {
       const val = attributeValues.find(
         (av) =>
-          av.presentation === selectedSize && av.attribute_id === sizeAttr.id,
+          av.presentation === selectedSize && av.attribute_id === sizeAttr.id
       );
       if (val) selectedIds.push(val.id);
     }
@@ -192,7 +192,7 @@ export default function ProductPageClient({
     }
 
     const matchingVariant = variants.find((v) =>
-      selectedIds.every((id) => v.attribute_value_ids.includes(id)),
+      selectedIds.every((id) => v.attribute_value_ids.includes(id))
     );
 
     setCurrentVariant(matchingVariant || null);
@@ -235,7 +235,7 @@ export default function ProductPageClient({
     };
 
     addToCart(item);
-    alert(t("addToCart"));
+    alert(t("addedToCart"));
   };
 
   if (loading)
