@@ -105,11 +105,12 @@ export default function Page() {
       <main className="flex-grow max-w-7xl mx-auto px-6 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
         {products.map((p) => {
           const productImage = images.find((img) => img.product_id === p.id);
-          const productVariants = variants[p.id] ?? [];
-
+          const productVariants = Array.isArray(variants[p.id])
+            ? variants[p.id]
+            : [];
           const prices = productVariants.map((v) => v.selling_price ?? v.price);
-          const minPrice = Math.min(...prices);
-          const maxPrice = Math.max(...prices);
+          const minPrice = prices.length ? Math.min(...prices) : 0;
+          const maxPrice = prices.length ? Math.max(...prices) : 0;
 
           return (
             <Link href={`/${locale}/${p.id}`} key={p.id} className="block">
