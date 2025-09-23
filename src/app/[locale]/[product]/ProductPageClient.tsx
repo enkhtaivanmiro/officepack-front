@@ -64,6 +64,9 @@ export default function ProductPageClient({
   const colorAttr = attributes.find((a) => a.name.toLowerCase() === "color");
   const sizeAttr = attributes.find((a) => a.name.toLowerCase() === "size");
   const nameAttr = attributes.find((a) => a.name.toLowerCase() === "name");
+  const formatPrice = (amount: number) => {
+    return amount.toLocaleString("en-US", { useGrouping: true });
+  };
 
   useEffect(() => {
     const restoreExpiredOrders = async () => {
@@ -292,11 +295,13 @@ export default function ProductPageClient({
         <div className="md:w-1/2 flex flex-col">
           <h1 className="text-3xl font-bold mb-2 text-black">{product.name}</h1>
           <div className="flex items-center gap-3 mb-3 flex-wrap">
-            <span className="text-3xl font-semibold text-black">₮{price}</span>
+            <span className="text-3xl font-semibold text-black">
+              MNT {formatPrice(price)}
+            </span>
             {discountPercent > 0 && (
               <>
                 <span className="text-gray-400 line-through text-3xl">
-                  ₮{originalPrice}
+                  MNT {formatPrice(originalPrice)}
                 </span>
                 <span className="bg-red-100 text-red-500 px-2 rounded-full text-base font-medium w-18 h-8 flex items-center justify-center">
                   -{discountPercent}%
@@ -304,6 +309,7 @@ export default function ProductPageClient({
               </>
             )}
           </div>
+
           <p className="text-gray-600 mb-6 font-extralight">
             {product.description}
           </p>
