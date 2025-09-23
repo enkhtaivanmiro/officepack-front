@@ -7,6 +7,11 @@ interface ProductCardProps {
   discount?: number;
 }
 
+// Helper function to format numbers like 150'000
+const formatPrice = (amount: number) => {
+  return amount.toLocaleString("en-US").replace(/,/g, "'");
+};
+
 export default function ProductCard({
   image,
   name,
@@ -16,20 +21,20 @@ export default function ProductCard({
 }: ProductCardProps) {
   const displayPrice =
     typeof price === "number"
-      ? `₮${price}`
+      ? `MNT ${formatPrice(price)}`
       : price.min === price.max
-        ? `₮${price.min}`
-        : `₮${price.min} - ₮${price.max}`;
+        ? `MNT ${formatPrice(price.min)}`
+        : `MNT ${formatPrice(price.min)} - MNT ${formatPrice(price.max)}`;
 
   return (
     <div className="space-y-3 text-center">
-      <img src={image} alt={name} className="mx-auto w-80" />
+      <img src={image} alt={name} className="mx-auto w-80 rounded-lg" />
       <h3 className="font-bold text-xl text-black">{name}</h3>
       <div className="flex items-center justify-center space-x-2 gap-2.5">
-        <span className="font-bold text-black text-2xl">{displayPrice}</span>
+        <span className="font-bold text-black text-xl">{displayPrice}</span>
         {oldPrice && (
           <span className="line-through text-2xl text-gray-400 font-bold">
-            ₮{oldPrice}
+            MNT {formatPrice(oldPrice)}
           </span>
         )}
         {discount && (

@@ -62,11 +62,11 @@ export default function Page() {
         await Promise.all(
           productsData.map(async (p) => {
             const res = await fetch(
-              `${process.env.NEXT_PUBLIC_API_URL}/product/${p.id}/variants`,
+              `${process.env.NEXT_PUBLIC_API_URL}/product/${p.id}/variants`
             );
             const data: Variant[] = await res.json();
             variantsMap[p.id] = data;
-          }),
+          })
         );
         setVariants(variantsMap);
       } catch (err: any) {
