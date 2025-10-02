@@ -30,27 +30,6 @@ export default function Header() {
             <Link href={localizedLink("/")} className="hover:text-gray-600">
               {t("shop")}
             </Link>
-            <Link href={localizedLink("/team")} className="hover:text-gray-600">
-              {t("team")}
-            </Link>
-            <Link
-              href={localizedLink("/match")}
-              className="hover:text-gray-600"
-            >
-              {t("match")}
-            </Link>
-            <Link
-              href={localizedLink("/about")}
-              className="hover:text-gray-600"
-            >
-              {t("about")}
-            </Link>
-            <Link
-              href={localizedLink("/achievement")}
-              className="hover:text-gray-600"
-            >
-              {t("achievement")}
-            </Link>
           </nav>
         </div>
 
