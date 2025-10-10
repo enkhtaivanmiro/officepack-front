@@ -511,12 +511,13 @@ export default function ProductPageClient({
           </div>
         </div>
       </main>
-      <Footer />
       <ToastContainer
         position="bottom-right"
         autoClose={3000}
         transition={Zoom}
+        style={{ bottom: "20px" }}
       />
+      <Footer />
     </div>
   );
 }
