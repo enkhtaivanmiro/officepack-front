@@ -32,12 +32,9 @@ export default function Checkout() {
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/restore-expired`, {
       method: "POST",
-    })
-      .then((res) =>
-        res.ok ? res.json() : console.error("Failed to restore expired orders")
-      )
-      .then((result) => console.log("Restored expired orders:", result))
-      .catch((err) => console.error("Error restoring expired orders:", err));
+    }).then((res) =>
+      res.ok ? res.json() : console.error("Failed to restore expired orders")
+    );
   }, []);
 
   useEffect(() => {
@@ -60,7 +57,6 @@ export default function Checkout() {
     })
       .then(async (res) => {
         const data = await res.json();
-        console.log(res);
 
         if (!res.ok) {
           if (data.statusCode === 400) {
