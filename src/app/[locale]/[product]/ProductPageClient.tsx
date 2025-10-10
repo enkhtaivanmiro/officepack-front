@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import { CartItem } from "../../../atoms/cartAtom";
 import { useCart } from "../../../hooks/useCart";
 import { useTranslations } from "next-intl";
+import { toast, ToastContainer, Zoom } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 type Product = {
   id: string;
@@ -39,7 +41,6 @@ interface ProductPageClientProps {
 }
 
 export default function ProductPageClient({
-  locale,
   productId,
 }: ProductPageClientProps) {
   const t = useTranslations("ProductPage");
@@ -49,21 +50,25 @@ export default function ProductPageClient({
   const [attributes, setAttributes] = useState<Attribute[]>([]);
   const [attributeValues, setAttributeValues] = useState<AttributeValue[]>([]);
   const [variants, setVariants] = useState<Variant[]>([]);
+
   const [currentVariant, setCurrentVariant] = useState<Variant | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [isProcessing, setIsProcessing] = useState(false);
+
   const [mainImageIndex, setMainImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [selectedColor, setSelectedColor] = useState<string | null>(null);
-  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const priorityOrder = ["color", "size"];
+
+  const [selectedAttributes, setSelectedAttributes] = useState<
+    Record<string, string | null>
+  >({});
+
   const [customName, setCustomName] = useState<string>("");
 
   const { addToCart } = useCart();
 
-  const colorAttr = attributes.find((a) => a.name.toLowerCase() === "color");
-  const sizeAttr = attributes.find((a) => a.name.toLowerCase() === "size");
-  const nameAttr = attributes.find((a) => a.name.toLowerCase() === "name");
   const formatPrice = (amount: number) => {
     return amount.toLocaleString("en-US", { useGrouping: true });
   };
@@ -87,7 +92,7 @@ export default function ProductPageClient({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [prodRes, attrRes, valRes, varRes] = await Promise.all([
+        const [prodRes, attrResRaw, valResRaw, varResRaw] = await Promise.all([
           fetch(`${process.env.NEXT_PUBLIC_API_URL}/product/${productId}`).then(
             (r) => r.json()
           ),
@@ -102,14 +107,15 @@ export default function ProductPageClient({
           ).then((r) => r.json()),
         ]);
 
-        setProduct(prodRes);
         const imgRes = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/images/product/${productId}`
         ).then((r) => r.json());
-        setImages(imgRes);
-        setAttributes(attrRes);
-        setAttributeValues(valRes);
-        setVariants(varRes);
+
+        setProduct(prodRes);
+        setImages(Array.isArray(imgRes) ? imgRes : []);
+        setAttributes(Array.isArray(attrResRaw) ? attrResRaw : []);
+        setAttributeValues(Array.isArray(valResRaw) ? valResRaw : []);
+        setVariants(Array.isArray(varResRaw) ? varResRaw : []);
       } catch (e) {
         console.error(e);
         setError(t("failedLoad"));
@@ -120,76 +126,88 @@ export default function ProductPageClient({
     fetchData();
   }, [productId, t]);
 
-  const availableColors = attributeValues
-    .filter((av) => colorAttr && av.attribute_id === colorAttr.id)
-    .filter((av) =>
-      variants.some((v) => v.attribute_value_ids.includes(av.id))
+  const relevantAttributes = useMemo(() => {
+    if (attributes.length === 0 || variants.length === 0) return [];
+
+    const allAttrValuesInVariants = new Set<string>();
+    variants.forEach((v) =>
+      v.attribute_value_ids.forEach((id) => allAttrValuesInVariants.add(id))
     );
 
-  const availableSizes = attributeValues
-    .filter((av) => sizeAttr && av.attribute_id === sizeAttr.id)
-    .filter((av) =>
-      variants.some((v) => v.attribute_value_ids.includes(av.id))
-    );
+    return attributes
+      .map((attr) => {
+        const relevantValues = attributeValues.filter(
+          (av) =>
+            av.attribute_id === attr.id && allAttrValuesInVariants.has(av.id)
+        );
+
+        return {
+          ...attr,
+          values: relevantValues,
+          key: attr.name.toLowerCase(),
+        };
+      })
+      .filter((attr) => attr.values.length > 0)
+      .filter((attr) => attr.key !== "name");
+  }, [attributes, attributeValues, variants]);
 
   useEffect(() => {
+    if (relevantAttributes.length === 0) return;
+
     const masterVariant = variants.find((v) => v.is_master);
+    const initialSelections: Record<string, string | null> = {};
 
-    if (masterVariant) {
-      const colorVal = attributeValues.find(
-        (av) =>
-          colorAttr &&
-          av.attribute_id === colorAttr.id &&
-          masterVariant.attribute_value_ids.includes(av.id)
-      );
-      if (colorVal) setSelectedColor(colorVal.presentation);
+    relevantAttributes.forEach((attr) => {
+      let initialValue: string | null = null;
 
-      const sizeVal = attributeValues.find(
-        (av) =>
-          sizeAttr &&
-          av.attribute_id === sizeAttr.id &&
+      if (masterVariant) {
+        const masterVal = attr.values.find((av) =>
           masterVariant.attribute_value_ids.includes(av.id)
-      );
-      if (sizeVal) setSelectedSize(sizeVal.presentation);
-    } else {
-      if (availableColors.length > 0 && !selectedColor) {
-        setSelectedColor(availableColors[0].presentation);
+        );
+        initialValue = masterVal?.presentation ?? null;
       }
-      if (availableSizes.length > 0 && !selectedSize) {
-        setSelectedSize(availableSizes[0].presentation);
+
+      if (!initialValue && attr.values.length > 0) {
+        initialValue = attr.values[0].presentation;
       }
-    }
-  }, [
-    variants,
-    attributeValues,
-    colorAttr,
-    sizeAttr,
-    availableColors,
-    availableSizes,
-    selectedColor,
-    selectedSize,
-  ]);
+
+      initialSelections[attr.key] = initialValue;
+    });
+
+    setSelectedAttributes((prev) => ({ ...prev, ...initialSelections }));
+  }, [variants, relevantAttributes]);
 
   useEffect(() => {
+    if (relevantAttributes.length === 0) {
+      setCurrentVariant(null);
+      return;
+    }
+
     const selectedIds: string[] = [];
+    let isFullySelected = true;
 
-    if (selectedColor && colorAttr) {
+    relevantAttributes.forEach((attr) => {
+      const selectedPresentation = selectedAttributes[attr.key];
+
+      if (!selectedPresentation) {
+        isFullySelected = false;
+        return;
+      }
+
       const val = attributeValues.find(
         (av) =>
-          av.presentation === selectedColor && av.attribute_id === colorAttr.id
+          av.presentation === selectedPresentation &&
+          av.attribute_id === attr.id
       );
-      if (val) selectedIds.push(val.id);
-    }
 
-    if (selectedSize && sizeAttr) {
-      const val = attributeValues.find(
-        (av) =>
-          av.presentation === selectedSize && av.attribute_id === sizeAttr.id
-      );
-      if (val) selectedIds.push(val.id);
-    }
+      if (val) {
+        selectedIds.push(val.id);
+      } else {
+        isFullySelected = false;
+      }
+    });
 
-    if (selectedIds.length === 0) {
+    if (!isFullySelected || selectedIds.length === 0) {
       setCurrentVariant(null);
       return;
     }
@@ -199,14 +217,7 @@ export default function ProductPageClient({
     );
 
     setCurrentVariant(matchingVariant || null);
-  }, [
-    selectedColor,
-    selectedSize,
-    variants,
-    attributeValues,
-    colorAttr,
-    sizeAttr,
-  ]);
+  }, [selectedAttributes, variants, relevantAttributes, attributeValues]);
 
   const price =
     currentVariant?.selling_price ??
@@ -220,26 +231,64 @@ export default function ProductPageClient({
       : 0;
 
   const handleAddToCart = () => {
+    if (isProcessing) return;
+
     if (!currentVariant) {
-      alert(t("selectVariantAlert"));
+      toast.error(t("selectVariantAlert"));
       return;
     }
 
-    const item: CartItem = {
-      id: product!.id,
-      name: product!.name,
-      color: selectedColor,
-      size: selectedSize,
-      quantity,
-      price,
-      image: images[mainImageIndex]?.url ?? "",
-      variantId: currentVariant.id,
-      customName,
-    };
+    if (currentVariant.stock <= 0) {
+      toast.error(t("outOfStock"));
+      return;
+    }
 
-    addToCart(item);
-    alert(t("addedToCart"));
+    if (currentVariant.stock < quantity) {
+      const availableStock = currentVariant.stock;
+      toast.warn(t("notEnoughStock", { stock: availableStock }));
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      const selectedAttributesForCart: Record<string, string> = {};
+      relevantAttributes.forEach((attr) => {
+        const value = selectedAttributes[attr.key];
+        if (value) {
+          selectedAttributesForCart[attr.key] = value;
+        }
+      });
+
+      const item: CartItem = {
+        id: product!.id,
+        name: product!.name,
+        quantity,
+        price,
+        image: images[mainImageIndex]?.url ?? "",
+        variantId: currentVariant.id,
+        customName,
+        ...selectedAttributesForCart,
+      };
+
+      addToCart(item, currentVariant.stock);
+      toast.success(t("addedToCart"));
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      toast.error("Failed to add to cart.");
+    } finally {
+      setTimeout(() => {
+        setIsProcessing(false);
+      }, 200);
+    }
   };
+
+  const isBaseDisabled =
+    !currentVariant ||
+    currentVariant.stock <= 0 ||
+    currentVariant.stock < quantity;
+
+  const isAddToCartDisabled = isBaseDisabled || isProcessing;
 
   if (loading)
     return (
@@ -294,6 +343,7 @@ export default function ProductPageClient({
 
         <div className="md:w-1/2 flex flex-col">
           <h1 className="text-3xl font-bold mb-2 text-black">{product.name}</h1>
+
           <div className="flex items-center gap-3 mb-3 flex-wrap">
             <span className="text-3xl font-semibold text-black">
               MNT {formatPrice(price)}
@@ -314,51 +364,102 @@ export default function ProductPageClient({
             {product.description}
           </p>
 
-          {colorAttr && (
-            <div className="mb-6">
-              <p className="font-extralight mb-4 text-gray-600">
-                {t("selectColor")}
-              </p>
-              <div className="flex gap-4 flex-wrap">
-                {availableColors.map((val) => (
-                  <button
-                    key={val.id}
-                    onClick={() => setSelectedColor(val.presentation)}
-                    style={{ backgroundColor: val.name }}
-                    className="w-9 h-9 rounded-full flex items-center justify-center"
-                  >
-                    {selectedColor === val.presentation && (
-                      <span className="text-white text-sm font-bold">✓</span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
+          {currentVariant && (
+            <p
+              className={`mb-3 text-sm font-medium ${currentVariant.stock > 10 ? "text-green-600" : currentVariant.stock > 0 ? "text-orange-500" : "text-red-500"}`}
+            >
+              {currentVariant.stock > 0
+                ? t("inStock", { count: currentVariant.stock })
+                : t("outOfStock")}
+            </p>
           )}
 
-          {sizeAttr && (
-            <div className="mb-6">
-              <p className="font-extralight mb-4 text-gray-600">
-                {t("chooseSize")}
-              </p>
-              <div className="flex gap-4 flex-wrap">
-                {availableSizes.map((val) => (
-                  <button
-                    key={val.id}
-                    onClick={() => setSelectedSize(val.presentation)}
-                    className={`px-6 py-3 rounded-full ${
-                      selectedSize === val.presentation
-                        ? "bg-black text-white"
-                        : "bg-gray-200 text-gray-600"
-                    }`}
-                  >
-                    {val.presentation}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          {relevantAttributes
+            .sort((a, b) => {
+              const aKey = a.key;
+              const bKey = b.key;
 
+              const aIndex = priorityOrder.indexOf(aKey);
+              const bIndex = priorityOrder.indexOf(bKey);
+
+              if (aIndex !== -1 && bIndex !== -1) {
+                return aIndex - bIndex;
+              }
+
+              if (aIndex !== -1) {
+                return -1;
+              }
+
+              if (bIndex !== -1) {
+                return 1;
+              }
+
+              return aKey.localeCompare(bKey);
+            })
+            .map((attr) => {
+              const selectedPresentation = selectedAttributes[attr.key];
+
+              return (
+                <div key={attr.id} className="mb-6">
+                  <p className="font-extralight mb-4 text-gray-600">
+                    {t(`select${attr.name}`, {
+                      defaultValue: t("selectAttribute", {
+                        attribute: attr.name,
+                      }),
+                    })}
+                  </p>
+
+                  <div className="flex gap-4 flex-wrap">
+                    {attr.values.map((val) => {
+                      const isSelected =
+                        selectedPresentation === val.presentation;
+
+                      const handleSelection = () => {
+                        setSelectedAttributes((prev) => ({
+                          ...prev,
+                          [attr.key]: val.presentation,
+                        }));
+                      };
+
+                      if (attr.key === "color") {
+                        return (
+                          <button
+                            key={val.id}
+                            onClick={handleSelection}
+                            style={{ backgroundColor: val.name }}
+                            className={`w-9 h-9 rounded-full flex items-center justify-center border-2 transition-all duration-150 ${
+                              isSelected
+                                ? "border-black shadow-md scale-110"
+                                : "border-gray-300 hover:scale-105"
+                            }`}
+                          >
+                            {isSelected && (
+                              <span className="text-white text-sm font-bold shadow-black/80 shadow-md">
+                                ✓
+                              </span>
+                            )}
+                          </button>
+                        );
+                      }
+
+                      return (
+                        <button
+                          key={val.id}
+                          onClick={handleSelection}
+                          className={`px-6 py-3 rounded-full transition-colors duration-150 ${
+                            isSelected
+                              ? "bg-black text-white"
+                              : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                          }`}
+                        >
+                          {val.presentation}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
           {productId === "01071048-fe3a-49c2-9857-d79f0d7b7920" && (
             <div className="mb-6">
               <p className="font-extralight mb-4 text-gray-600">
@@ -378,7 +479,8 @@ export default function ProductPageClient({
             <div className="flex flex-nowrap">
               <button
                 onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                className="w-12 h-12 rounded-l-full flex justify-center items-center text-2xl bg-gray-200 text-black"
+                disabled={quantity <= 1}
+                className="w-12 h-12 rounded-l-full flex justify-center items-center text-2xl bg-gray-200 text-black disabled:opacity-50"
               >
                 −
               </button>
@@ -387,21 +489,34 @@ export default function ProductPageClient({
               </div>
               <button
                 onClick={() => setQuantity((q) => q + 1)}
-                className="w-12 h-12 rounded-r-full flex justify-center items-center text-2xl bg-gray-200 text-black"
+                disabled={
+                  !!(currentVariant && quantity >= currentVariant.stock)
+                }
+                className="w-12 h-12 rounded-r-full flex justify-center items-center text-2xl bg-gray-200 text-black disabled:opacity-50"
               >
                 +
               </button>
             </div>
             <button
               onClick={handleAddToCart}
-              className="ml-auto sm:ml-0 bg-black text-white px-6 py-3 rounded-full md:w-[400px] sm:w-auto"
+              disabled={Boolean(isAddToCartDisabled)}
+              className="ml-auto sm:ml-0 bg-black text-white px-6 py-3 rounded-full md:w-[400px] sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {t("addToCart")}
+              {isProcessing
+                ? t("processing") || "Processing..."
+                : isBaseDisabled && currentVariant?.stock === 0
+                  ? t("outOfStock")
+                  : t("addToCart")}
             </button>
           </div>
         </div>
       </main>
       <Footer />
+      <ToastContainer
+        position="bottom-right"
+        autoClose={3000}
+        transition={Zoom}
+      />
     </div>
   );
 }

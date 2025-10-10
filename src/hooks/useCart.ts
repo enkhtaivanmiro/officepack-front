@@ -4,8 +4,8 @@ import { cartAtom, CartItem } from "../atoms/cartAtom";
 export const useCart = () => {
   const [cart, setCart] = useAtom(cartAtom);
 
-  const addToCart = (item: CartItem) => {
-    setCart({ type: "add", item });
+  const addToCart = (item: CartItem, maxStock: number) => {
+    setCart({ type: "add", item, maxStock });
   };
 
   const removeFromCart = (id: string, variantId?: string) => {
@@ -31,7 +31,7 @@ export const useCart = () => {
 
   return {
     cart,
-    addToCart,
+    addToCart, 
     removeFromCart,
     increaseQuantity,
     decreaseQuantity,

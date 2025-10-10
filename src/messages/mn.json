@@ -41,20 +41,23 @@
     "addToCart": "Сагсанд нэмэх",
     "addedToCart": "Сагсанд амжиллтай нэмлээ, сагс хуудасруу зочилж захиалгаа баталгаажуулна уу.",
     "enterName": "Хэвлүүлэх нэрээ оруулна уу",
-    "namePlaceholder": "nin9"
+    "namePlaceholder": "nin9",
+    "inStock": "",
+    "outOfStock": "Дууссан",
+    "selectSize": "Хэмжээ:"
   },
   "Index": {
     "hero_new": "ШИНЭ",
-    "hero_merch": "БАРАА",
-    "hero_out_now": "ОДОО БЭЛЭН",
-    "hero_cta": "ДЭЛГҮҮР",
-    "official_jersey": "АЛБАН ЁСНЫ ФУТБОЛК"
+    "hero_merch": "МЕРЧ",
+    "hero_out_now": "АЛБАН ЁСООР",
+    "hero_cta": "ГАРЛАА",
+    "official_jersey": "АЛБАН ЁСНЫ БАГИЙН ӨМСГӨЛ"
   },
   "Cart": {
     "empty": "Таны сагс хоосон байна.",
     "orderSummary": "Захиалгын мэдээ",
     "subtotal": "Нийт",
-    "discount": "Хөнгөлөлт (-20%)",
+    "discount": "Хөнгөлөлт",
     "deliveryFee": "Хүргэлтийн төлбөр",
     "total": "Нийт дүн",
     "promoPlaceholder": "Хөнгөлөлтийн код оруулах",

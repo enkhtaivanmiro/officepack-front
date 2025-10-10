@@ -41,7 +41,10 @@
     "addToCart": "Add to Cart",
     "addedToCart": "Added to Cart, Visit Cart page to checkout.",
     "enterName": "Enter Name for Printing",
-    "namePlaceholder": "nin9"
+    "namePlaceholder": "nin9",
+    "inStock": "In Stock",
+    "outOfStock": "Out of Stock",
+    "selectSize": "Choose Size"
   },
   "Index": {
     "hero_new": "NEW",
@@ -54,7 +57,7 @@
     "empty": "Your cart is empty.",
     "orderSummary": "Order Summary",
     "subtotal": "Subtotal",
-    "discount": "Discount (-20%)",
+    "discount": "Discount",
     "deliveryFee": "Delivery Fee",
     "total": "Total",
     "promoPlaceholder": "Add promo code",

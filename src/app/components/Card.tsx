@@ -7,7 +7,6 @@ interface ProductCardProps {
   discount?: number;
 }
 
-// Helper function to format numbers like 150'000
 const formatPrice = (amount: number) => {
   return amount.toLocaleString("en-US").replace(/,/g, "'");
 };

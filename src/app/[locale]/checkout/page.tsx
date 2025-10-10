@@ -9,6 +9,8 @@ import { useSetAtom, useAtomValue } from "jotai";
 import { orderParamsAtom } from "../../../atoms/orderParamsAtom";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function Checkout() {
   const t = useTranslations("Checkout");
@@ -32,7 +34,7 @@ export default function Checkout() {
       method: "POST",
     })
       .then((res) =>
-        res.ok ? res.json() : console.error("Failed to restore expired orders"),
+        res.ok ? res.json() : console.error("Failed to restore expired orders")
       )
       .then((result) => console.log("Restored expired orders:", result))
       .catch((err) => console.error("Error restoring expired orders:", err));
@@ -58,13 +60,13 @@ export default function Checkout() {
     })
       .then(async (res) => {
         const data = await res.json();
+        console.log(res);
+
         if (!res.ok) {
-          if (data.message?.includes("Not enough stock")) {
-            alert(data.message);
-            router.push("/cart");
-            return;
+          if (data.statusCode === 400) {
+            toast.error("Not enough stock");
           }
-          throw new Error(data.message || "Failed to fetch order preview");
+          return;
         }
         return data;
       })
@@ -77,15 +79,18 @@ export default function Checkout() {
           total: data.total,
         });
       })
-      .catch(console.error)
+      .catch((error) => {
+        console.error(error);
+        toast.error(error.message || "An unexpected error occurred.");
+      })
       .finally(() => setLoading(false));
   }, [cart, setPrice, router]);
 
   const handlePay = async () => {
-    if (!selectedPayment) return alert(t("selectPaymentAlert"));
+    if (!selectedPayment) return toast.info(t("selectPaymentAlert"));
 
     const addressData = localStorage.getItem("address");
-    if (!addressData) return alert(t("provideAddressAlert"));
+    if (!addressData) return toast.info(t("provideAddressAlert"));
 
     const parsedAddress = JSON.parse(addressData);
     const items = cart.map((item) => ({
@@ -113,13 +118,13 @@ export default function Checkout() {
             promo_id: promoId || null,
             payment_method: selectedPayment,
           }),
-        },
+        }
       );
 
       const orderResult = await orderResponse.json();
       if (!orderResponse.ok) {
         if (orderResult.message?.includes("Not enough stock")) {
-          alert(orderResult.message);
+          toast.info(orderResult.message);
           router.push("/cart");
           return;
         }
@@ -139,7 +144,7 @@ export default function Checkout() {
             amount: price.total,
             method: selectedPayment.toLowerCase(),
           }),
-        },
+        }
       );
 
       const paymentResult = await paymentResponse.json();
@@ -157,7 +162,7 @@ export default function Checkout() {
       localStorage.removeItem("promoId");
     } catch (err: any) {
       console.error(err);
-      alert(err.message || t("orderCreationError"));
+      toast.info(err.message || t("orderCreationError"));
     } finally {
       setLoading(false);
     }

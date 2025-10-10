@@ -9,7 +9,9 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center py-6 px-6 space-y-4 md:space-y-0">
         <p>© 2025 TEAM HUNS</p>
         <div>
-          <p className="text-end mb-3 font-bold text-xs">{t("followUs")}</p>
+          <p className="text-end mb-3 font-bold text-xs flex items-center">
+            {t("followUs")}
+          </p>
           <div className="flex space-x-4">
             <a href="https://www.facebook.com/TheHunsEsports/">
               <Facebook className="w-4 h-4" />

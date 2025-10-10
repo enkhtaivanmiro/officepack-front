@@ -44,7 +44,7 @@ export default function AddressPage() {
   }, [setOrderParams]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -108,7 +108,7 @@ export default function AddressPage() {
                 />
               </div>
 
-              <div>
+              {/* <div>
                 <label className="block text-sm text-gray-700 mb-1">
                   {t("address")}
                 </label>
@@ -121,9 +121,9 @@ export default function AddressPage() {
                   placeholder={t("addressPlaceholder")}
                   required
                 />
-              </div>
+              </div> */}
 
-              <div>
+              {/* <div>
                 <label className="block text-sm text-gray-700 mb-1">
                   {t("additionalInfo")}
                 </label>
@@ -135,7 +135,7 @@ export default function AddressPage() {
                   placeholder={t("additionalInfoPlaceholder")}
                   rows={3}
                 />
-              </div>
+              </div> */}
 
               <button
                 type="submit"

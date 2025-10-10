@@ -7,6 +7,7 @@ import { X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { QRCodeCanvas } from "qrcode.react";
+import { toast } from "react-toastify";
 
 interface PaymentResult {
   invoiceId: string;
@@ -20,7 +21,7 @@ interface PaymentData {
 }
 
 export default function PaymentPage({ params }: any) {
-  const orderId = params.orderId; // ✅ use `any` to bypass server typing
+  const orderId = params.orderId;
   const t = useTranslations("PaymentPage");
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -42,7 +43,7 @@ export default function PaymentPage({ params }: any) {
     const fetchPaymentStatus = async () => {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/payment/check/${orderId}/${paymentId}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/payment/check/${orderId}/${paymentId}`
         );
         if (!res.ok) throw new Error("Failed to fetch payment status");
         const data: PaymentData = await res.json();
@@ -87,17 +88,17 @@ export default function PaymentPage({ params }: any) {
     try {
       setLoading(true);
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/payment/check/${orderId}/${paymentId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/payment/check/${orderId}/${paymentId}`
       );
       if (!res.ok) throw new Error("Failed to check payment status");
       const data: PaymentData = await res.json();
       setPaymentData(data);
       if (data.status === "success")
         router.push(`/complete?invoiceId=${paymentId}`);
-      else alert("Payment is not done yet.");
+      else toast.info("Payment is not done yet.");
     } catch (err: any) {
       console.error(err);
-      alert(err.message || "Something went wrong.");
+      toast.info(err.message || "Something went wrong.");
     } finally {
       setLoading(false);
     }
@@ -107,7 +108,7 @@ export default function PaymentPage({ params }: any) {
     <div className="flex flex-col min-h-screen bg-white text-black">
       <Header />
       <main className="flex flex-col items-center justify-center flex-grow px-4">
-        <div className="relative bg-gradient-to-b from-gray-200 to-gray-300 rounded-xl shadow-lg mt-14 mb-14 p-8 w-[459px] flex flex-col items-center text-center">
+        <div className="relative bg-gradient-to-b from-gray-200 to-gray-300 rounded-xl shadow-lg mt-14 mb-14 p-4 sm:p-8 w-full max-w-[459px] flex flex-col items-center text-center">
           <button
             className="absolute top-3 right-3"
             onClick={() => router.back()}

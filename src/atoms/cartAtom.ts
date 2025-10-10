@@ -31,7 +31,7 @@ const getInitialCart = (): CartItem[] => {
 const baseCartAtom = atom<CartItem[]>(getInitialCart());
 
 export type CartAction =
-  | { type: "add"; item: CartItem }
+  | { type: "add"; item: CartItem; maxStock: number } // Added maxStock
   | { type: "remove"; id: string; variantId?: string }
   | { type: "increment"; id: string; variantId?: string }
   | { type: "decrement"; id: string; variantId?: string }
@@ -45,16 +45,38 @@ export const cartAtom = atom(
 
     switch (action.type) {
       case "add": {
-        const newItem = action.item;
+        const { item, maxStock } = action;
+        
         const idx = prev.findIndex(
-          (i) => i.id === newItem.id && i.variantId === newItem.variantId
+          (i) => i.id === item.id && i.variantId === item.variantId
         );
-        updated =
-          idx > -1
-            ? prev.map((i, iidx) =>
-                iidx === idx ? { ...i, quantity: i.quantity + newItem.quantity } : i
-              )
-            : [...prev, newItem];
+
+        if (idx > -1) {
+          const existingItem = prev[idx];
+          const potentialQuantity = existingItem.quantity + item.quantity;
+          
+          const finalQuantity = Math.min(potentialQuantity, maxStock);
+          
+          if (finalQuantity === existingItem.quantity) {
+             updated = prev;
+          } else {
+             updated = prev.map((i, iidx) =>
+                iidx === idx ? { ...i, quantity: finalQuantity } : i
+             );
+          }
+          
+        } else {
+          if (item.quantity > maxStock) {
+            const quantityToSet = Math.max(0, maxStock);
+            if (quantityToSet > 0) {
+               updated = [...prev, { ...item, quantity: quantityToSet }];
+            } else {
+               updated = prev; 
+            }
+          } else {
+            updated = [...prev, item];
+          }
+        }
         break;
       }
       case "remove":
@@ -80,6 +102,9 @@ export const cartAtom = atom(
         break;
       case "clear":
         updated = [];
+        break;
+      default:
+        updated = prev;
         break;
     }
 
