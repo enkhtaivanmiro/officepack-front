@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import OrderSummary from "../../components/OrderSummary";
@@ -56,7 +56,7 @@ export default function CartPage() {
 
     localStorage.setItem(
       "cartTotals",
-      JSON.stringify({ subtotal, discount, deliveryFee, total }),
+      JSON.stringify({ subtotal, discount, deliveryFee, total })
     );
   }, [cart, setOrderParams]);
 
@@ -66,7 +66,9 @@ export default function CartPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Header />
+      <Suspense fallback={null}>
+        <Header />
+      </Suspense>
 
       <main className="max-w-7xl mx-auto w-full px-6 py-12 flex flex-col md:flex-row gap-8 flex-grow font-satoshi">
         <div className="md:w-2/3 space-y-4">

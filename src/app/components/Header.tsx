@@ -1,36 +1,41 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Link, usePathname, useRouter } from "../../i18n/navigation";
+import { useSearchParams } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { ShoppingCart } from "lucide-react";
-import { useTranslations } from "next-intl";
 import { useCart } from "../../hooks/useCart";
 
 export default function Header() {
   const t = useTranslations("Header");
+
   const pathname = usePathname();
   const router = useRouter();
+
   const searchParams = useSearchParams();
+
+  const currentLocale = useLocale();
 
   const [isMounted, setIsMounted] = useState(false);
 
   const { getTotalItems } = useCart();
   const itemCount = getTotalItems();
 
-  const currentLocale = pathname.startsWith("/mn") ? "mn" : "en";
-
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
   const handleLocaleChange = (locale: string) => {
-    const query = searchParams.toString();
-    const newPathname = pathname.replace(/^\/(en|mn)/, `/${locale}`);
-    router.push(`${newPathname}${query ? `?${query}` : ""}`);
+    const href = {
+      pathname: pathname,
+      query: Object.fromEntries(searchParams.entries()),
+    };
+
+    router.replace(href, { locale: locale });
   };
 
-  const localizedLink = (path: string) => `/${currentLocale}${path}`;
+  const localizedLink = (path: string) => path;
 
   const cartBadge =
     itemCount > 0 && isMounted ? (
@@ -70,7 +75,6 @@ export default function Header() {
 
           <Link href={localizedLink("/cart")} className="relative">
             <ShoppingCart className="w-6 h-6 cursor-pointer text-gray-700" />
-
             {cartBadge}
           </Link>
         </div>

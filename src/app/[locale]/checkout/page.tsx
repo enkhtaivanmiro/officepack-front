@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import Image from "next/image";
@@ -12,7 +12,7 @@ import { useTranslations } from "next-intl";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-export default function Checkout() {
+function CheckoutContent() {
   const t = useTranslations("Checkout");
   const { cart, clearCart } = useCart();
   const setPrice = useSetAtom(orderParamsAtom);
@@ -21,6 +21,7 @@ export default function Checkout() {
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [customNames, setCustomNames] = useState<{ [key: string]: string }>({});
+
   useEffect(() => {
     const initialNames: { [key: string]: string } = {};
     cart.forEach((item) => {
@@ -321,5 +322,14 @@ export default function Checkout() {
       </main>
       <Footer />
     </div>
+  );
+}
+
+export default function Checkout() {
+  return (
+    <Suspense fallback={<div>Loading checkout...</div>}>
+      <CheckoutContent />
+      <ToastContainer />
+    </Suspense>
   );
 }
