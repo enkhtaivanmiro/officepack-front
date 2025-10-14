@@ -254,7 +254,7 @@ function CheckoutContent() {
                     <p className="font-medium">₮{item.price * item.quantity}</p>
                   </div>
 
-                  <input
+                  {/* <input
                     type="text"
                     placeholder="Custom Name (optional)"
                     value={customNames[item.id] || ""}
@@ -265,7 +265,7 @@ function CheckoutContent() {
                       }))
                     }
                     className="border border-gray-300 rounded-md px-2 py-1 text-sm w-full"
-                  />
+                  /> */}
                 </div>
               ))}
 
