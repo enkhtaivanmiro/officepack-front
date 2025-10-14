@@ -309,7 +309,8 @@ export default function ProductPageClient({
       <Header />
       <main className="flex-1 mt-8 max-w-7xl mx-auto p-6 flex flex-col md:flex-row gap-10 font-satoshi">
         <div className="flex flex-col md:flex-row gap-4 md:gap-6 w-full">
-          <div className="flex flex-row md:flex-col gap-2 md:gap-4 w-full md:w-auto overflow-x-auto">
+          {/* Thumbnails */}
+          <div className="flex flex-row md:flex-col gap-2 md:gap-4 w-full md:w-auto overflow-x-auto order-2 md:order-1">
             {images.map((img, idx) => (
               <button
                 key={img.id}
@@ -326,15 +327,17 @@ export default function ProductPageClient({
               </button>
             ))}
           </div>
-          <div className="flex-1 p-6 rounded-lg flex items-center justify-center">
+
+          {/* Main image */}
+          <div className="flex-1 p-6 rounded-lg flex items-start md:items-start justify-center order-1 md:order-2">
             {images.length > 0 ? (
               <img
                 src={images[mainImageIndex].url}
                 alt={product.name}
-                className="w-full max-w-full h-auto object-cover rounded"
+                className="w-full h-auto object-contain rounded"
               />
             ) : (
-              <div className="w-full h-96 flex items-center justify-center text-gray-600">
+              <div className="w-full h-96 flex items-start justify-center text-gray-600">
                 {t("noImages")}
               </div>
             )}
@@ -460,7 +463,7 @@ export default function ProductPageClient({
                 </div>
               );
             })}
-          {productId === "01071048-fe3a-49c2-9857-d79f0d7b7920" && (
+          {/* {productId === "01071048-fe3a-49c2-9857-d79f0d7b7920" && (
             <div className="mb-6">
               <p className="font-extralight mb-4 text-gray-600">
                 {t("enterName")}
@@ -473,7 +476,7 @@ export default function ProductPageClient({
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black text-black"
               />
             </div>
-          )}
+          )} */}
 
           <div className="flex flex-row items-center mb-10 mt-6 gap-4">
             <div className="flex flex-nowrap">
