@@ -136,15 +136,17 @@ export default function HomePageClient() {
     <div className="min-h-screen flex flex-col">
       <Header />
       <div
-        className="w-full h-auto bg-cover bg-center"
+        className="w-full h-20vh bg-cover bg-center aspect-[3/1]"
         style={{ backgroundImage: "url('/hero.jpg')" }}
       >
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between px-6 py-16 h-full">
-          <div className="text-white font-bold text-4xl md:text-5xl leading-tight mb-8 md:mb-0 p-4 rounded-lg">
-            <p>{t("hero_new")}</p>
-            <p>{t("hero_merch")}</p>
-            <p>{t("hero_out_now")}</p>
-            <button>{t("hero_cta")}</button>
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between px-6 py-4 md:py-16 h-full">
+          <div className="text-white font-bold text-lg sm:text-2xl md:text-5xl leading-tight p-0 sm:p-4 mb-0 rounded-lg flex flex-col justify-end h-full">
+            <div className="flex flex-row flex-wrap gap-2 md:gap-4 justify-center md:flex-col sm:justify-end">
+              <p>{t("hero_new")}</p>
+              <p>{t("hero_merch")}</p>
+              <p>{t("hero_out_now")}</p>
+              <p>{t("hero_cta")}</p>
+            </div>
           </div>
         </div>
       </div>
