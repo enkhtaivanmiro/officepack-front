@@ -7,13 +7,15 @@ import { useTranslations } from "next-intl";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Card from "../components/Card";
+import Spline from "@splinetool/react-spline";
 
+// Dark-mode skeleton loader
 const SkeletonCard = () => (
-  <div className="animate-pulse flex flex-col space-y-4 border border-gray-100 rounded-lg p-3">
-    <div className="bg-gray-200 h-48 w-full rounded-md"></div>
+  <div className="animate-pulse flex flex-col space-y-4 border border-gray-700 bg-gray-800 rounded-lg p-3">
+    <div className="bg-gray-700 h-48 w-full rounded-md"></div>
     <div className="space-y-2">
-      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+      <div className="h-4 bg-gray-700 rounded w-3/4"></div>
+      <div className="h-4 bg-gray-700 rounded w-1/2"></div>
     </div>
   </div>
 );
@@ -93,7 +95,8 @@ export default function HomePageClient() {
     fetchData();
   }, []);
 
-  if (error) return <p className="text-center mt-10 text-red-600">{error}</p>;
+  if (error)
+    return <p className="text-center mt-10 text-red-400">{error}</p>;
 
   const skeletonCount = 8;
 
@@ -132,29 +135,33 @@ export default function HomePageClient() {
     });
   }
 
+  // Spline Scene URL (your provided scene)
+  const SCENE_URL =
+    "https://prod.spline.design/63aa1f20-fbd1-4b3d-9a99-6a8a825917ca/scene.splinecode";
+
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-black text-gray-200">
       <Header />
-      <div
-        className="w-full h-20vh bg-cover bg-center aspect-[3/1]"
-        style={{ backgroundImage: "url('/hero.jpg')" }}
-      >
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between px-6 py-4 md:py-16 h-full">
-          <div className="text-white font-bold text-lg sm:text-2xl md:text-5xl leading-tight p-0 sm:p-4 mb-0 rounded-lg flex flex-col justify-end h-full">
-            <div className="flex flex-row flex-wrap gap-2 md:gap-4 justify-center md:flex-col sm:justify-end">
-              <p>{t("hero_new")}</p>
-              <p>{t("hero_merch")}</p>
-              <p>{t("hero_out_now")}</p>
-              <p>{t("hero_cta")}</p>
-            </div>
-          </div>
+
+      {/* HERO SECTION: Spline 3D office essentials */}
+      <div className="w-full h-[60vh] md:h-[70vh] relative rounded-lg overflow-hidden border border-gray-800 shadow-lg max-w-7xl mx-auto my-8">
+        <Spline scene={SCENE_URL} className="w-full h-full" />
+      </div>
+
+      {/* Optional overlay / description */}
+      <div className="max-w-7xl mx-auto px-6 mb-12">
+        <div className="bg-black/60 text-gray-200 rounded-lg px-4 py-4 border border-gray-800 backdrop-blur-sm text-center">
+          <h2 className="text-2xl md:text-3xl font-bold mb-2">
+            Office Essentials
+          </h2>
+          <p className="text-gray-400 text-sm md:text-base">
+            Find papers, printer ink, cleaning supplies, toilet papers, and more
+            for your office — delivered fast.
+          </p>
         </div>
       </div>
 
-      <h1 className="font-bold text-black text-center mt-25 text-3xl mb-25">
-        {t("official_jersey")}
-      </h1>
-
+      {/* PRODUCTS */}
       <main className="flex-grow max-w-7xl mx-auto px-6 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
         {productDisplay}
       </main>

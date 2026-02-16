@@ -17,6 +17,7 @@ const buttonVariants = cva(
         gradient: '',
         cancel: 'bg-warning text-white border-2 border-[#222]',
         danger: 'bg-destructive/10 text-destructive border-1 border-destructive',
+        ghost: 'bg-transparent hover:bg-gray-100 text-black',
       },
       size: {
         '36': 'h-9 rounded-lg px-4 py-2 has-[>svg]:px-3',
@@ -50,68 +51,79 @@ const gradientVariants = cva('w-full', {
   },
 });
 
-function Button({
-  className,
-  variant,
-  size,
-  disabled,
-  asChild = false,
-  loading = false,
-  type = 'button',
-  children,
-  borderWidth = 2,
-  gradientChildClassName,
-  ...props
-}: React.ComponentProps<'button'> &
-  VariantProps<typeof buttonVariants> & {
-    asChild?: boolean;
-    loading?: boolean;
-    borderWidth?: number;
-    gradientChildClassName?: string;
-  }) {
-  const Comp = asChild ? Slot : 'button';
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
+  loading?: boolean;
+  borderWidth?: number;
+  gradientChildClassName?: string;
+}
 
-  if (variant !== 'gradient')
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  (
+    {
+      className,
+      variant,
+      size,
+      asChild = false,
+      loading = false,
+      type = 'button',
+      borderWidth = 2,
+      gradientChildClassName,
+      children,
+      ...props
+    },
+    ref,
+  ) => {
+    const Comp = asChild ? Slot : 'button';
+
+    if (variant !== 'gradient')
+      return (
+        <Comp
+          type={type}
+          data-slot="button"
+          disabled={loading || props.disabled}
+          className={cn(buttonVariants({ variant, size, className }))}
+          ref={ref}
+          {...props}
+        >
+          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {children}
+        </Comp>
+      );
+
     return (
-      <Comp
-        type={type}
-        data-slot="button"
-        disabled={loading || disabled}
-        className={cn(buttonVariants({ variant, size, className }))}
-        {...props}
-      >
-        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {children}
-      </Comp>
-    );
-
-  return (
-    <div
-      style={{ padding: borderWidth }}
-      className={cn(
-        'relative inline-flex overflow-hidden',
-        'bg-gradient group',
-        disabled && 'opacity-50 pointer-events-none',
-        // @ts-ignore
-        cn(gradientVariants({ size, className })),
-      )}
-    >
-      <Comp
-        {...props}
-        disabled={disabled}
+      <div
+        style={{ padding: borderWidth }}
         className={cn(
-          buttonVariants({
-            size,
-            variant: 'default',
-            className: `h-full w-full bg-[#101010] disabled:bg-[#101010] disabled:opacity-100 text-white group-hover:bg-white group-hover:text-[#101010] ${gradientChildClassName || ''}`,
-          }),
+          'relative inline-flex overflow-hidden',
+          'bg-gradient group',
+          props.disabled && 'opacity-50 pointer-events-none',
+          // @ts-ignore
+          cn(gradientVariants({ size, className })),
         )}
       >
-        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {children}
-      </Comp>
-    </div>
-  );
-}
+        <Comp
+          type={type}
+          {...props}
+          disabled={props.disabled}
+          className={cn(
+            buttonVariants({
+              size,
+              variant: 'default',
+              className: `h-full w-full bg-[#101010] disabled:bg-[#101010] disabled:opacity-100 text-white group-hover:bg-white group-hover:text-[#101010] ${gradientChildClassName || ''}`,
+            }),
+          )}
+          ref={ref}
+        >
+          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {children}
+        </Comp>
+      </div>
+    );
+  },
+);
+Button.displayName = 'Button';
 
 export { Button, buttonVariants };

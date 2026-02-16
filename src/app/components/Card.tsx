@@ -22,22 +22,58 @@ export default function ProductCard({
     typeof price === "number"
       ? `MNT ${formatPrice(price)}`
       : price.min === price.max
-        ? `MNT ${formatPrice(price.min)}`
-        : `MNT ${formatPrice(price.min)} - MNT ${formatPrice(price.max)}`;
+      ? `MNT ${formatPrice(price.min)}`
+      : `MNT ${formatPrice(price.min)} - MNT ${formatPrice(price.max)}`;
 
   return (
-    <div className="space-y-3 text-center">
-      <img src={image} alt={name} className="mx-auto w-80 rounded-lg" />
-      <h3 className="font-bold text-xl text-black">{name}</h3>
-      <div className="flex items-center justify-center space-x-2 gap-2.5">
-        <span className="font-bold text-black text-xl">{displayPrice}</span>
+    <div
+      className="
+        group 
+        space-y-3 text-center text-white 
+        bg-gray-900/40 
+        rounded-xl 
+        p-4 
+        border border-white 
+        transition-all duration-300 
+        hover:-translate-y-2 
+        hover:shadow-[0_10px_30px_rgba(0,0,0,0.6)]
+      "
+    >
+      <div className="overflow-hidden rounded-lg">
+        <img
+          src={image}
+          alt={name}
+          className="
+            mx-auto w-80 rounded-lg border border-gray-800 
+            transition-transform duration-300 
+            group-hover:scale-105
+          "
+        />
+      </div>
+
+      <h3 className="font-bold text-xl text-white line-clamp-1">{name}</h3>
+
+      <div className="flex items-center justify-center space-x-3">
+        {/* Price */}
+        <span className="font-bold text-xl text-white">{displayPrice}</span>
+
+        {/* Old price */}
         {oldPrice && (
-          <span className="line-through text-2xl text-gray-400 font-bold">
+          <span className="line-through text-gray-500 text-lg font-semibold">
             MNT {formatPrice(oldPrice)}
           </span>
         )}
+
+        {/* Discount */}
         {discount && (
-          <span className="text-red-500 text-xs font-semibold bg-red-100 rounded-full w-14 h-7 flex items-center justify-center">
+          <span className="
+            text-red-400 text-xs font-semibold 
+            bg-red-900/40 
+            border border-red-700 
+            rounded-full 
+            w-14 h-7 
+            flex items-center justify-center
+          ">
             -{discount}%
           </span>
         )}
