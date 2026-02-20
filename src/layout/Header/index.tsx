@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { Heart, Search, Menu } from 'lucide-react';
 import Image from 'next/image';
@@ -15,7 +17,20 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+
 export default function Header() {
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
   return (
     <header className="w-full border-b border-gray-200 bg-white text-black sticky top-0 z-50">
       <div className="mx-auto max-w-7xl px-4 md:px-6">
@@ -32,16 +47,18 @@ export default function Header() {
           <div className="hidden md:flex flex-1 items-center gap-4">
             <CategoryMenu />
 
-            <div className="relative flex-1 max-w-md">
+            <form onSubmit={handleSearch} className="relative flex-1 max-w-md">
               <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
                 <Search className="h-4 w-4 text-gray-400" />
               </div>
               <input
                 type="text"
                 placeholder="Хайлт"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full h-11 pl-10 pr-4 bg-gray-100 rounded-full text-sm outline-none focus:ring-2 focus:ring-blue-500/20 border-transparent transition-all"
               />
-            </div>
+            </form>
           </div>
 
           {/* Desktop: Logo Center */}
@@ -75,16 +92,18 @@ export default function Header() {
               <DropdownMenuContent align="end" className="w-[280px] p-4 bg-white rounded-xl shadow-xl border border-gray-100">
                 {/* Search */}
                 <div className="mb-4">
-                  <div className="relative">
+                  <form onSubmit={handleSearch} className="relative">
                     <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
                       <Search className="h-4 w-4 text-gray-400" />
                     </div>
                     <input
                       type="text"
                       placeholder="Хайлт"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
                       className="w-full h-10 pl-10 pr-4 bg-gray-100 rounded-full text-sm outline-none focus:ring-2 focus:ring-blue-500/20 border-transparent"
                     />
-                  </div>
+                  </form>
                 </div>
 
                 <DropdownMenuSeparator className="my-2" />

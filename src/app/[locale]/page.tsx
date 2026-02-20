@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useCart } from '@/hooks/useCart';
 
@@ -325,7 +326,7 @@ const App = () => {
       <div id="stationery-section" className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8 bg-gray-50">
         <div className="flex justify-between items-center mb-4 sm:mb-6">
           <h2 className="text-black text-lg sm:text-xl font-bold">Бичиг хэрэг</h2>
-          <a href="#" className="text-xs sm:text-sm text-gray-500 hover:text-black whitespace-nowrap">Бүгдийг үзэх &rarr;</a>
+          <Link href="/products?category=stationery" className="text-xs sm:text-sm text-gray-500 hover:text-black whitespace-nowrap">Бүгдийг үзэх &rarr;</Link>
         </div>
         <div ref={stationeryRef} className="flex gap-4 sm:gap-6 lg:gap-8 overflow-x-auto pb-4 scrollbar-hide">
           {renderProductList(stationeryProducts)}
@@ -336,7 +337,7 @@ const App = () => {
       <div id="furniture-section" className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className="flex justify-between items-center mb-4 sm:mb-6">
           <h2 className="text-black text-lg sm:text-xl font-bold">Оффис тавилга</h2>
-          <a href="#" className="text-xs sm:text-sm text-gray-500 hover:text-black whitespace-nowrap">Бүгдийг үзэх &rarr;</a>
+          <Link href="/products?category=furniture" className="text-xs sm:text-sm text-gray-500 hover:text-black whitespace-nowrap">Бүгдийг үзэх &rarr;</Link>
         </div>
         <div ref={furnitureRef} className="flex gap-4 sm:gap-6 lg:gap-8 overflow-x-auto pb-4 scrollbar-hide">
           {renderProductList(furnitureProducts)}
@@ -347,7 +348,7 @@ const App = () => {
       <div id="electronics-section" className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8 bg-gray-50">
         <div className="flex justify-between items-center mb-4 sm:mb-6">
           <h2 className="text-black text-lg sm:text-xl font-bold">Цахилгаан бараа</h2>
-          <a href="#" className="text-xs sm:text-sm text-gray-500 hover:text-black whitespace-nowrap">Бүгдийг үзэх &rarr;</a>
+          <Link href="/products?category=electronics" className="text-xs sm:text-sm text-gray-500 hover:text-black whitespace-nowrap">Бүгдийг үзэх &rarr;</Link>
         </div>
         <div ref={electronicsRef} className="flex gap-4 sm:gap-6 lg:gap-8 overflow-x-auto pb-4 scrollbar-hide">
           {renderProductList(electronicsProducts)}

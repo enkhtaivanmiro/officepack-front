@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { ShoppingCart } from "lucide-react";
 import { useCart } from "../../hooks/useCart";
+import CartDropdown from "./CartDropdown";
 
 export default function Header() {
   const t = useTranslations("Header");
@@ -93,11 +94,10 @@ export default function Header() {
             </option>
           </select>
 
-          {/* Cart */}
-          <Link href={localizedLink("/cart")} className="relative">
-            <ShoppingCart className="w-6 h-6 text-gray-300 hover:text-white transition" />
-            {cartBadge}
-          </Link>
+          {/* Cart Dropdown */}
+          <div className="relative">
+            <CartDropdown />
+          </div>
         </div>
       </div>
     </header>

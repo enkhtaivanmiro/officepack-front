@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 
 type Props = {
   onCheckout?: () => void;
+  onSavePack?: () => void;
   checkoutLabel?: string;
   showCheckout?: boolean;
   readonlyPromo?: boolean;
@@ -15,6 +16,7 @@ type Props = {
 
 export default function OrderSummary({
   onCheckout,
+  onSavePack,
   checkoutLabel,
   showCheckout = true,
   readonlyPromo = false,
@@ -174,13 +176,25 @@ export default function OrderSummary({
       {error && <p className="text-red-500 mb-2">{error}</p>}
 
       {showCheckout && (
-        <button
-          type="button"
-          onClick={onCheckout}
-          className="w-full bg-black text-white text-base py-3 rounded-full hover:bg-gray-800 flex items-center justify-center gap-3"
-        >
-          {checkoutLabel || t("checkout")}
-        </button>
+        <div className="space-y-3">
+          <button
+            type="button"
+            onClick={onCheckout}
+            className="w-full bg-black text-white text-base py-3 rounded-full hover:bg-gray-800 flex items-center justify-center gap-3"
+          >
+            {checkoutLabel || t("checkout")}
+          </button>
+
+          {onSavePack && (
+            <button
+              type="button"
+              onClick={onSavePack}
+              className="w-full bg-white border border-black text-black text-base py-3 rounded-full hover:bg-gray-50 flex items-center justify-center gap-3 transition-colors"
+            >
+              {t("saveAsPack") || "Save as Pack"}
+            </button>
+          )}
+        </div>
       )}
     </div>
   );

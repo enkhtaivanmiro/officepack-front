@@ -10,10 +10,12 @@ import {
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { useCart } from '@/hooks/useCart';
+import { usePacks } from '@/hooks/usePacks';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 export function CartPopover() {
     const { cart, getTotalItems, getTotalPrice, removeFromCart, increaseQuantity, decreaseQuantity } = useCart();
+    const { addPack } = usePacks();
     const itemCount = getTotalItems();
     const totalPrice = getTotalPrice();
 
@@ -104,13 +106,28 @@ export function CartPopover() {
                     )}
                 </div>
 
-                <div className="p-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
-                    <div className="flex justify-between items-center mb-4">
+                <div className="p-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl space-y-3">
+                    <div className="flex justify-between items-center mb-1">
                         <span className="text-gray-600 font-medium">Нийт:</span>
                         <span className="text-xl font-bold text-black">{totalPrice.toLocaleString()}₮</span>
                     </div>
                     <Button className="w-full bg-[#101010] text-white hover:bg-[#202020] rounded-xl h-12" disabled={itemCount === 0}>
                         Худалдан авах
+                    </Button>
+                    <Button
+                        variant="border"
+                        className="w-full border-gray-300 text-gray-700 hover:bg-white hover:text-black rounded-xl h-12"
+                        disabled={itemCount === 0}
+                        onClick={() => {
+                            if (cart.length === 0) return;
+                            const packName = prompt("Багцын нэр оруулна уу:");
+                            if (packName) {
+                                addPack(packName, cart);
+                                alert(`"${packName}" багц амжилттай хадгалагдлаа!`);
+                            }
+                        }}
+                    >
+                        Багц болгож хадгалах
                     </Button>
                 </div>
             </PopoverContent>

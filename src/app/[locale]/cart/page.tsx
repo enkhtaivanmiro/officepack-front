@@ -5,6 +5,7 @@ import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import OrderSummary from "../../components/OrderSummary";
 import { useCart } from "../../../hooks/useCart";
+import { usePacks } from "../../../hooks/usePacks";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Trash2 } from "lucide-react";
@@ -14,6 +15,7 @@ import { orderParamsAtom } from "../../../atoms/orderParamsAtom";
 export default function CartPage() {
   const { cart, removeFromCart, increaseQuantity, decreaseQuantity } =
     useCart();
+  const { addPack } = usePacks();
   const router = useRouter();
   const t = useTranslations("Cart");
   const setOrderParams = useSetAtom(orderParamsAtom);
@@ -62,6 +64,16 @@ export default function CartPage() {
 
   const handleCheckout = () => {
     router.push("/address");
+  };
+
+  const handleSaveAsPack = () => {
+    if (cart.length === 0) return alert("Your cart is empty!");
+
+    const packName = prompt("Enter a name for your pack:");
+    if (!packName) return;
+
+    addPack(packName, cart);
+    alert(`Pack "${packName}" saved! You can view it in your Profile.`);
   };
 
   return (
@@ -133,7 +145,7 @@ export default function CartPage() {
           )}
         </div>
 
-        <OrderSummary onCheckout={handleCheckout} />
+        <OrderSummary onCheckout={handleCheckout} onSavePack={handleSaveAsPack} />
       </main>
 
       <Footer />

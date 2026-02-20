@@ -4,6 +4,8 @@ import Header from "@/app/components/Header";
 import Footer from "@/app/components/Footer";
 import React, { useState } from "react";
 import { Password } from "@/components/ui/Password";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export default function SignUp() {
   const [loading, setLoading] = useState(false);
@@ -84,12 +86,12 @@ export default function SignUp() {
             <label className="text-sm font-medium mb-1 text-black">
               *Хэрэглэгчийн нэр
             </label>
-            <input
+            <Input
               type="text"
               name="username"
               value={formData.username}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-black"
+              className="mb-1"
             />
             {errors.username && (
               <span className="text-xs text-red-500 mt-1">
@@ -100,12 +102,12 @@ export default function SignUp() {
             <label className="text-sm font-medium mb-1 text-black mt-4">
               *И-мэйл
             </label>
-            <input
+            <Input
               type="text"
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-black"
+              className="mb-1"
             />
             {errors.email && (
               <span className="text-xs text-red-500 mt-1">{errors.email}</span>
@@ -133,12 +135,11 @@ export default function SignUp() {
             <label className="text-sm font-medium mt-4 mb-1 text-black">
               *Нууц үг баталгаажуулах
             </label>
-            <input
-              type="password"
+            <Password
               name="passwordConfirm"
+              placeholder=""
               value={formData.passwordConfirm}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-black"
             />
             {errors.passwordConfirm && (
               <span className="text-xs text-red-500 mt-1">
@@ -148,14 +149,13 @@ export default function SignUp() {
           </div>
 
           {/* Submit */}
-          <button
+          <Button
             onClick={handleSubmit}
             disabled={loading}
-            className={`w-full bg-white border border-gray-400 text-gray-800 font-bold py-2 rounded-lg hover:bg-gray-100 transition ${loading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+            className="w-full bg-black text-white hover:bg-gray-800 transition py-6 rounded-xl font-bold mt-4"
           >
             {loading ? "Бүртгэж байна..." : "Бүртгүүлэх"}
-          </button>
+          </Button>
 
           <p className="text-sm font-medium mt-1 text-black mb-10">
             Бүртгэлтэй бол{" "}
